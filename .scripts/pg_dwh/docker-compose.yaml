@@ -1,0 +1,31 @@
+
+version: "3.9"
+services:
+  postgres:
+    image: postgres:13.6-alpine
+    environment:
+      POSTGRES_DB: "dwh"
+      POSTGRES_USER: "master"
+      POSTGRES_PASSWORD: "pgpwd"
+      PGDATA = "/var/lib/postgresql/data/pgdata"
+    volumes:
+#      - .:/docker-entrypoint-initdb.d # db init scripts (optional)
+      - "/var/run/postgres/postgres.sock:/var/run/postgres/postgres.sock"
+      - ".:/var/lib/postgresql/data"
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U master -d dwh"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: 0.8
+          memory: 2G
+        reservations:
+          cpus: 0.5
+          memory: 1G

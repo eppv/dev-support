@@ -1,0 +1,13 @@
+
+# dev tools
+.idea/
+
+# env
+virtualenv/
+venv/
+env/
+.env
+
+# temp
+temp/
+*.tmp
