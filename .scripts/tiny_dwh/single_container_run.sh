@@ -17,11 +17,11 @@ fi &&
 docker run \
 --name pg_dwh \
 -p 5432:5432 \
--e POSTGRES_USER=pguser \
+-e POSTGRES_USER=postgres \
 -e POSTGRES_PASSWORD=pgpwd \
--e POSTGRES_DB=dwh \
+-e POSTGRES_DB=postgres \
 -e PGDATA=/var/lib/postgresql/data/pgdata \
 -d \
 -v /var/run/postgresql/postgres.sock:/var/run/postgresql/postgres.sock \
 -v "$data_dir":/var/lib/postgresql/data \
-postgres:13.6-alpine3.15
+postgres:14.2-alpine3.15

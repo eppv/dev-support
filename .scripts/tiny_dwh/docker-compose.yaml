@@ -2,10 +2,10 @@
 version: "3.9"
 services:
   postgres:
-    image: postgres:13.6-alpine
+    image: postgres:14.2-alpine
     environment:
-      POSTGRES_DB: "dwh"
-      POSTGRES_USER: "master"
+      POSTGRES_DB: "postgres"
+      POSTGRES_USER: "postgres"
       POSTGRES_PASSWORD: "pgpwd"
       PGDATA = "/var/lib/postgresql/data/pgdata"
     volumes:
@@ -15,7 +15,7 @@ services:
     ports:
       - "5432:5432"
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U master -d dwh"]
+      test: ["CMD-SHELL", "pg_isready -U postgres -d postgres"]
       interval: 10s
       timeout: 5s
       retries: 5
