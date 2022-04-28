@@ -13,6 +13,9 @@ Some common frameworks and libraries are listed here with their licenses
 * dagster : Apache 2.0
 * dbt : Apache 2.0
 
+### Tests
+* pytest : MIT
+
 ## Libraries
 
 ### Template toolkits
@@ -35,4 +38,7 @@ Some common frameworks and libraries are listed here with their licenses
 ### Time and scheduling
 pytz : MIT
 APScheduler : MIT
+
+### Environment
+python-dotenv : BSD 3-Clause
 
