@@ -29,3 +29,21 @@ services:
         reservations:
           cpus: 0.5
           memory: 1G
+
+  clickhouse:
+    image: clickhouse/clickhouse-server22.4.2-alpine
+    volumes:
+      - ".:/var/lib/clickhouse/"
+      - ".:/var/log/clickhouse-server/"
+    ports:
+      - "8123:8123"
+      - "9000:9000"
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: 0.8
+          memory: 2G
+        reservations:
+          cpus: 0.5
+          memory: 1G
