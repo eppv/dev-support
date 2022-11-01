@@ -8,6 +8,10 @@ venv/
 env/
 .env
 
+# config
+*config
+config/
+
 # temp
 temp/
 *.tmp
