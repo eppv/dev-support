@@ -8,6 +8,11 @@ venv/
 env/
 .env
 
+# pytest
+.pytest_cache/
+*.pytest_cache
+
+
 # config
 *config
 config/
