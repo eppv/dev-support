@@ -17,6 +17,14 @@ class Connection:
     login: [str]
     password: [str]
 
+    @classmethod
+    def from_config(cls, conn_id):
+        connection_configs = read_yaml(config_path)['connections']
+        for config in connection_configs:
+            if config['id'] == conn_id:
+                return cls(**config)
+        print('No connection with such id defined in configuration file')
+
     def render_db_dsn(self):
         host = self.host
         port = self.port
@@ -32,8 +40,4 @@ class Connection:
         return dsn
 
 
-def get_connection(conn_id):
-    connection_configs = read_yaml(config_path)['connections']
-    for config in connection_configs:
-        if config['id'] == conn_id:
-            return Connection(**config)
+

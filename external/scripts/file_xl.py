@@ -8,13 +8,11 @@ from external.etl.common import extract, create_backup, load, \
 from external.utils.db import apply_on_db, \
     dummy_db_action
 from external.utils.var import show_exec_time
-from external.utils.connections import get_connection
+from external.utils.connections import Connection
 
 
 script_id = 'example'
-
 CONFIG = get_etl_config('../config/example')[script_id]
-DSN = get_connection(CONFIG['load']['sink']['conn_id']).render_db_dsn()
 
 
 @show_exec_time
@@ -26,15 +24,16 @@ def run(config):
     schema = config['load']['sink']['schema']
     table = config['load']['sink']['table']
 
-    dump_path = config['dump']
+    conn = Connection.from_config(CONFIG['load']['sink']['conn_id'])
+    dsn = conn.render_db_dsn()
+    sql_engine = create_engine(dsn, echo=False)
 
-    sql_engine = create_engine(DSN, echo=False)
     file_extractor = PandasExcelExtractor(uri, dtype='string', header=header)
     db_loader = PandasSQLLoader(engine=sql_engine, schema=schema, table=table)
 
     batch = extract(file_extractor)
 
-    create_backup(batch, dump_path)
+    create_backup(batch, config['dump'])
     preparation_actions = [dummy_db_action]
     apply_on_db(engine=sql_engine, table=f'{schema}.{table}', actions=preparation_actions)
 
