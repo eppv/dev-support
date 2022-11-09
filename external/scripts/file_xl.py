@@ -3,7 +3,7 @@ from witness.providers.pandas.extractors import PandasExcelExtractor
 from witness.providers.pandas.loaders import PandasSQLLoader
 from sqlalchemy import create_engine
 
-from external.utils.etl import extract, create_backup, load
+from external.etl.common import extract, create_backup, load
 from external.utils.db import apply_on_db, \
     dummy_db_action
 from external.utils.var import show_exec_time

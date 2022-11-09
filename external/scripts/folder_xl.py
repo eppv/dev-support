@@ -6,9 +6,10 @@ from witness.providers.pandas.extractors import PandasExcelExtractor
 from witness.providers.pandas.loaders import PandasSQLLoader
 
 from external.utils.var import show_exec_time
-from external.utils.etl import extract, create_backup, load
+from external.etl.common import extract, create_backup, load, get_etl_config
 from external.utils.db import get_loaded_src_ids, grant_preset_priveleges, \
     apply_on_db, dummy_db_action
+from external.utils.connections import get_connection
 
 
 def is_temp(filename):
@@ -75,6 +76,18 @@ def dir_etl(config):
 
 if __name__ == '__main__':
 
-    for cfg in CONFIGS:
-        dir_etl(cfg)
+    dag_id = 'iac_forms_cnt_working_area_comments'
+    config_path = '../config/iac_forms'
+    CONFIG = get_etl_config(config_path)[dag_id]
 
+    src_uri = CONFIG['extract']['src']['uri']
+    conn_id = CONFIG['load']['sink']['conn_id']
+    dump = CONFIG['dump']
+
+    connection = get_connection(conn_id)
+
+    print(f"""
+    src_uri = {src_uri}
+    sink_connection_dsn = {connection.render_db_dsn()}
+    dump = {dump}
+    """)

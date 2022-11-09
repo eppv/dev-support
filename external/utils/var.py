@@ -4,6 +4,8 @@ import yaml
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
 
+encodings = ('utf-8', 'cp1251', 'cp866', 'cp855', 'koi8_r', 'cyrillic', 'maccyrillic')
+
 
 def color(string: str, color_name: str = 'white') -> str:
 
@@ -40,16 +42,19 @@ def show_exec_time(func):
 
 
 def read_yaml(filepath):
-    with open(filepath,
-              'r') as stream:
+    for encoding in encodings:
         try:
-            return yaml.safe_load(stream)
-        except yaml.YAMLError as exc:
-            print(exc)
+            with open(filepath,
+                      'r', encoding=encoding) as stream:
+                try:
+                    return yaml.safe_load(stream)
+                except yaml.YAMLError as exc:
+                    print(exc)
+        except UnicodeDecodeError:
+            continue
 
 
 def read_query_file(filepath):
-    encodings = ('utf-8', 'cp1251', 'cp866', 'cp855', 'koi8_r', 'cyrillic', 'maccyrillic')
     for encoding in encodings:
         try:
             with open(filepath, 'r', encoding=encoding) as q:
