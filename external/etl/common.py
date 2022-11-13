@@ -1,7 +1,6 @@
 from datetime import datetime
 from witness import Batch
-from external.utils.var import show_exec_time, color, read_yaml
-import os
+from external.utils.var import show_exec_time, color
 
 
 def _drop_empty_columns_in_output(extractor):
@@ -50,7 +49,3 @@ def transform_mct_plans_and_rejects(output):
     return result
 
 
-def get_etl_config(path):
-    abs_config_path = os.path.abspath(path) + r'\config.yml'
-    config = read_yaml(abs_config_path)['dags']
-    return config

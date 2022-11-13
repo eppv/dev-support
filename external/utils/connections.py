@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 from typing import Optional
 from os.path import abspath
-from external.utils.var import read_yaml
+from external.utils.configparse import read_yaml
 
 config_path = abspath('../config/connections.yml')
 

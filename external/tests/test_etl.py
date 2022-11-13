@@ -1,5 +1,4 @@
-
-from external.etl.common import get_etl_config
+from external.utils.configparse import get_etl_config
 
 
 def test_get_config():
