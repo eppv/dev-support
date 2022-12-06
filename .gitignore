@@ -22,5 +22,5 @@ env/
 config/
 
 # temp
-temp/
+external/temp/
 *.tmp
