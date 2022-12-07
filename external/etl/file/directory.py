@@ -1,5 +1,4 @@
-from os import walk
-from os.path import split, isfile
+import os
 
 from sqlalchemy import create_engine
 # from airflow.providers.postgres.hooks.postgres import PostgresHook
@@ -13,7 +12,7 @@ from external.utils.var import color
 
 
 def is_valid(filepath):
-    if isfile(filepath):
+    if os.path.isfile(filepath):
         if '~$' in filepath:
             print(f'{filepath} is temp file. Passing...')
             return False
@@ -27,18 +26,17 @@ def print_etl_debug_msg(uri, engine, config):
 
     src = config['extract']['src']
     sink = config['load']['sink']
-    header = src['header']
 
     schema = sink['schema']
     table = sink['table']
     meta_elements_to_attach = sink['meta_elements']
     mode = config['load']['mode']
 
-    tail = split(uri)[1]
+    tail = os.path.split(uri)[1]
     dump_path = f"{config['dump']}_{tail}"
 
     debug_msg = f'''
-        From: {uri} looking for header on {header} row
+        From: {uri} 
         Dump creating at: {dump_path}
         Using: {engine.engine}
         Loading to: {schema}.{table}
@@ -76,10 +74,13 @@ def dir_extract(config, custom_transformation=None):
     engine = create_engine(dsn)
 
     all_files = []
-    for root, dirs, files in walk(dir_uri):
+    all_file_path = []
+    for root, dirs, files in os.walk(dir_uri):
         for file in files:
             all_files.append(file)
-    sources = [f'{dir_uri}/{file}' for file in all_files if is_valid(f'{dir_uri}/{file}')]
+            all_file_path.append(os.path.join(root, file))
+
+    sources = [f'{filepath}' for filepath in all_file_path if is_valid(f'{filepath}')]
 
     if mode == 'incremental':
         to_extract = check_missing_sources(sources, engine, full_table_name)
@@ -92,9 +93,9 @@ def dir_extract(config, custom_transformation=None):
     extracted = []
 
     for uri in to_extract:
-        meta = extract(uri=uri, config=config, dump_dir=dump_dir, transformation=custom_transformation)
-        extracted.append(meta)
-        # print_etl_debug_msg(uri, engine, config)
+        # meta = extract(uri=uri, config=config, dump_dir=dump_dir, transformation=custom_transformation)
+        # extracted.append(meta)
+        print_etl_debug_msg(uri, engine, config)
 
     return extracted
 

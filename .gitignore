@@ -23,4 +23,5 @@ config/
 
 # temp
 external/temp/
+temp/
 *.tmp
