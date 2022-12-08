@@ -42,7 +42,10 @@ def _extract_and_normalize(extractor, config, transformation=None):
 def extract(uri, config, dump_dir=None, transformation=None):
 
     src_cfg = config['extract']['src']
-    tsf_config = config['transform']
+    if transformation is not None:
+        tsf_config = config['transform']
+    else:
+        tsf_config = None
     src_cfg['uri'] = uri
 
     extractor = PandasExcelExtractor(**src_cfg, dtype='string',)

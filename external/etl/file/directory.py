@@ -93,9 +93,8 @@ def dir_extract(config, custom_transformation=None):
     extracted = []
 
     for uri in to_extract:
-        # meta = extract(uri=uri, config=config, dump_dir=dump_dir, transformation=custom_transformation)
-        # extracted.append(meta)
-        print_etl_debug_msg(uri, engine, config)
+        meta = extract(uri=uri, config=config, dump_dir=dump_dir, transformation=custom_transformation)
+        extracted.append(meta)
 
     return extracted
 
