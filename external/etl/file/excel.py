@@ -18,19 +18,20 @@ def _extract_and_normalize(extractor, config, transformation=None):
     extractor.extract()
     raw_output = extractor.output
 
-    output_dfs = _handle_multi_sheet(raw_output) if extractor.sheet_name is None \
+    dfs = _handle_multi_sheet(raw_output) if extractor.sheet_name is None \
         else [raw_output]
 
-    transformed_output_dfs = []
-    if transformation is not None:
-        for df in output_dfs:
-            transformed_df = transformation(df, config)
-            transformed_output_dfs.append(transformed_df)
-    else:
-        transformed_output_dfs = output_dfs
+    transformed_dfs = []
 
-    united_df = concat(transformed_output_dfs)
-    united_df.dropna(axis=1, inplace=True, how='all')
+    for df in dfs:
+        df.dropna(axis=1, inplace=True, how='all')
+        if transformation is not None:
+            transformed_df = transformation(df, config)
+            transformed_dfs.append(transformed_df)
+        else:
+            transformed_dfs = dfs
+
+    united_df = concat(transformed_dfs)
 
     setattr(extractor, 'output', united_df)
 

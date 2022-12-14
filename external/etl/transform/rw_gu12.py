@@ -1,7 +1,9 @@
 
 
 def define_headers(df, search_col_name, search_col_idx=0):
-    header_idx = df[df.iloc[:, search_col_idx].eq(search_col_name)].index.values[0]
+    df_first_column = df.iloc[:, search_col_idx]
+    headers_row = df_first_column.eq(search_col_name)
+    header_idx = df[headers_row].index.values[0]
     df.columns = df.iloc[header_idx]
     df = df[header_idx + 1:]
 
@@ -21,7 +23,7 @@ def transform(df, config):
     column_name = config['column_name']
     columns_list = config['columns_list']
     df_with_headers = define_headers(df, search_col_name=column_name)
-    df_with_headers.rename(columns=rename_col, inplace=True)
+    # df_with_headers.rename(columns=rename_col, inplace=True)
     df_with_headers = df_with_headers[columns_list]
     df_with_headers.dropna(thresh=3, inplace=True)
 
