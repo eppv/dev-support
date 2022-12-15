@@ -1,3 +1,6 @@
+import pandas as pd
+
+pd.set_option('mode.chained_assignment', None)
 
 
 def define_headers(df, search_col_name, search_col_idx=0):
@@ -10,21 +13,28 @@ def define_headers(df, search_col_name, search_col_idx=0):
     return df
 
 
-def rename_col(col_name):
-    import re
-    if re.match(r'([А-Я][а-я]+\S[а-я]+\s[а-я]+\.)', col_name):
-        new_col_name = re.sub('[А-Я][а-я]+\S[а-я]+\s[а-я]+\.\/[а-я]+\.', 'Кол-во ваг.', col_name)
-        return new_col_name
+def rename_column(column_name, config):
+    incorrect_names = config['column_rename']['incorrect_column_names']
+    correct_name = config['column_rename']['correct_column_name']
+
+    if column_name in incorrect_names:
+        new_column_name = column_name.replace(column_name, correct_name)
+        return new_column_name
     else:
-        return col_name
+        return column_name
 
 
-def transform(df, config):
-    column_name = config['column_name']
-    columns_list = config['columns_list']
+def rename_columns(df, config):
+    mapper = {name: rename_column(name, config) for name in df.columns}
+    df.rename(columns=mapper, inplace=True)
+    return df
+
+
+def transform(df, transform_config):
+    column_name = transform_config['column_name']
+    columns_list = transform_config['columns_list']
     df_with_headers = define_headers(df, search_col_name=column_name)
-    # df_with_headers.rename(columns=rename_col, inplace=True)
-    df_with_headers = df_with_headers[columns_list]
-    df_with_headers.dropna(thresh=3, inplace=True)
-
-    return df_with_headers
+    df_with_cols_renamed = rename_columns(df_with_headers, transform_config)
+    df_selected = df_with_cols_renamed[columns_list]
+    df_selected.dropna(thresh=3, inplace=True)
+    return df_selected

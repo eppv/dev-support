@@ -11,15 +11,37 @@ from external.utils.db import dummy_db_action, grant_preset_priveleges, get_load
 from external.utils.var import color
 
 
+def is_excel_format(filepath):
+    excel_extensions = ['.xlsx', '.xls', '.xlsm', '.xlsb']
+    head, tail = os.path.split(filepath)
+    name, ext = os.path.splitext(tail)
+    if ext in excel_extensions:
+        return True
+    return False
+
+
 def is_valid(filepath):
     if os.path.isfile(filepath):
         if '~$' in filepath:
             print(f'{filepath} is temp file. Passing...')
             return False
+        elif not is_excel_format(filepath):
+            print(f'{filepath} is not excel format. Passing...')
+            return False
         return True
+
     else:
         print(f'{filepath} is not a file. Passing...')
         return False
+
+
+def get_files_roots(dirpath):
+    files_roots = []
+    for root, dirs, filenames in os.walk(dirpath):
+        for filename in filenames:
+            files_roots.append(os.path.join(root, filename))
+
+    return files_roots
 
 
 def print_etl_debug_msg(uri, engine, config):
