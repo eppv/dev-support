@@ -44,10 +44,12 @@ def get_files_roots(dirpath):
     return files_roots
 
 
-def print_etl_debug_msg(uri, engine, config):
+def print_etl_debug_msg(config):
 
     src = config['extract']['src']
     sink = config['load']['sink']
+
+    uri = src['uri']
 
     schema = sink['schema']
     table = sink['table']
@@ -60,7 +62,6 @@ def print_etl_debug_msg(uri, engine, config):
     debug_msg = f'''
         From: {uri} 
         Dump creating at: {dump_path}
-        Using: {engine.engine}
         Loading to: {schema}.{table}
         Load mode: {mode}
         Attaching meta: {meta_elements_to_attach}
