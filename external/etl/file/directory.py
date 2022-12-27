@@ -4,35 +4,11 @@ from sqlalchemy import create_engine
 # from airflow.providers.postgres.hooks.postgres import PostgresHook
 from external.utils.connections import Connection
 
-from external.etl.file.excel import extract
+from external.etl.file.excel import extract, is_valid
 from external.etl.sql import load_clean
 from external.utils.db import dummy_db_action, grant_preset_priveleges, get_loaded_src_ids, \
     truncate_table, apply_on_db
 from external.utils.var import color
-
-
-def is_excel_format(filepath):
-    excel_extensions = ['.xlsx', '.xls', '.xlsm', '.xlsb']
-    head, tail = os.path.split(filepath)
-    name, ext = os.path.splitext(tail)
-    if ext in excel_extensions:
-        return True
-    return False
-
-
-def is_valid(filepath):
-    if os.path.isfile(filepath):
-        if '~$' in filepath:
-            print(f'{filepath} is temp file. Passing...')
-            return False
-        elif not is_excel_format(filepath):
-            print(f'{filepath} is not excel format. Passing...')
-            return False
-        return True
-
-    else:
-        print(f'{filepath} is not a file. Passing...')
-        return False
 
 
 def get_filepaths(dirpath):
@@ -146,7 +122,8 @@ def dir_load(meta, config):
         print(f'Table {color(table), "yellow"} does not exist and will be created by loader.')
 
     for batch_meta in meta:
-        load_clean(batch_meta, engine, config=sink)
+        if batch_meta is not None:
+            load_clean(batch_meta, engine, config=sink)
 
     apply_on_db(engine=engine, table=full_table_name, actions=db_on_end)
 

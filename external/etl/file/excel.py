@@ -1,3 +1,4 @@
+import os
 from os.path import split
 
 from witness import Batch
@@ -49,6 +50,9 @@ def extract(config, transformation=None):
     uri = src_cfg['uri']
     dump_dir = config['dump']
 
+    if not is_excel_format(uri):
+        return None
+
     if transformation is not None:
         tsf_config = config['transform']
     else:
@@ -70,3 +74,24 @@ def extract(config, transformation=None):
     return batch.meta
 
 
+def is_excel_format(filepath):
+    excel_extensions = ['.xlsx', '.xls', '.xlsm', '.xlsb']
+    head, tail = os.path.split(filepath)
+    name, ext = os.path.splitext(tail)
+    if ext in excel_extensions:
+        return True
+    print(f'{filepath} is not excel format. Passing...')
+    return False
+
+
+def is_valid(filepath):
+    tempfile_substrings = ['.tmp', '~$']
+    if os.path.isfile(filepath):
+        if any(substring in filepath for substring in tempfile_substrings):
+            print(f'{filepath} is temp file. Passing...')
+            return False
+        return True
+
+    else:
+        print(f'{filepath} is not a file. Passing...')
+        return False
