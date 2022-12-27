@@ -35,7 +35,7 @@ def is_valid(filepath):
         return False
 
 
-def get_files_roots(dirpath):
+def get_filepaths(dirpath):
     files_roots = []
     for root, dirs, filenames in os.walk(dirpath):
         for filename in filenames:
@@ -70,8 +70,11 @@ def print_etl_debug_msg(config):
     print(debug_msg)
 
 
-def check_missing_sources(sources, engine, table):
+def check_missing_sources(sources, conn_id, table):
 
+    dsn = Connection.from_config(conn_id).render_db_dsn()
+    engine = create_engine(dsn)
+    # engine = PostgresHook(postgres_conn_id=conn_id).get_sqlalchemy_engine()
     loaded = get_loaded_src_ids(engine, table)
     missing = [path for path in sources if path not in loaded]
 
@@ -84,39 +87,27 @@ def dir_extract(config, custom_transformation=None):
     sink = config['load']['sink']
     dir_uri = src['uri']
 
-    dump_dir = config['dump']
-
     conn_id = config['load']['sink']['conn_id']
-    schema = sink['schema']
-    table = sink['table']
-    full_table_name = f'{schema}.{table}'
+    full_table_name = f"{sink['schema']}.{sink['table']}"
     mode = config['load']['mode']
 
-    # engine = PostgresHook(postgres_conn_id=conn_id).get_sqlalchemy_engine()
-    dsn = Connection.from_config(conn_id).render_db_dsn()
-    engine = create_engine(dsn)
-
-    all_files = []
-    all_file_path = []
-    for root, dirs, files in os.walk(dir_uri):
-        for file in files:
-            all_files.append(file)
-            all_file_path.append(os.path.join(root, file))
-
-    sources = [f'{filepath}' for filepath in all_file_path if is_valid(f'{filepath}')]
+    filepaths = get_filepaths(dir_uri)
+    sources = [f'{filepath}' for filepath in filepaths if is_valid(f'{filepath}')]
 
     if mode == 'incremental':
-        to_extract = check_missing_sources(sources, engine, full_table_name)
+        files_to_extract = check_missing_sources(sources, conn_id, full_table_name)
     elif mode == 'replace':
-        to_extract = sources
+        files_to_extract = sources
     else:
-        to_extract = []
+        files_to_extract = []
         print(f'{color("WARNING:", "red")} Unknown load mode. Operation will be canceled.')
 
     extracted = []
 
-    for uri in to_extract:
-        meta = extract(uri=uri, config=config, dump_dir=dump_dir, transformation=custom_transformation)
+    for uri in files_to_extract:
+        file_config = config.copy()
+        file_config['extract']['src']['uri'] = uri
+        meta = extract(config=config, transformation=custom_transformation)
         extracted.append(meta)
 
     return extracted

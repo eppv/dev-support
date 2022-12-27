@@ -43,14 +43,16 @@ def _extract_and_normalize(extractor, config, transformation=None):
     return extractor.output
 
 
-def extract(uri, config, dump_dir=None, transformation=None):
+def extract(config, transformation=None):
 
     src_cfg = config['extract']['src']
+    uri = src_cfg['uri']
+    dump_dir = config['dump']
+
     if transformation is not None:
         tsf_config = config['transform']
     else:
         tsf_config = None
-    src_cfg['uri'] = uri
 
     extractor = PandasExcelExtractor(**src_cfg, dtype='string',)
     print(f'Extracting from {uri}')
