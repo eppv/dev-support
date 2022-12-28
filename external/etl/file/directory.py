@@ -2,7 +2,7 @@ import os
 
 from sqlalchemy import create_engine
 # from airflow.providers.postgres.hooks.postgres import PostgresHook
-from external.utils.connections import Connection
+from external.native.db import get_engine
 
 from external.etl.file.excel import extract, is_valid
 from external.etl.sql import load_clean
@@ -47,9 +47,7 @@ def print_etl_debug_msg(config):
 
 
 def check_missing_sources(sources, conn_id, table):
-
-    dsn = Connection.from_config(conn_id).render_db_dsn()
-    engine = create_engine(dsn)
+    engine = get_engine(conn_id)
     # engine = PostgresHook(postgres_conn_id=conn_id).get_sqlalchemy_engine()
     loaded = get_loaded_src_ids(engine, table)
     missing = [path for path in sources if path not in loaded]
@@ -99,10 +97,7 @@ def dir_load(meta, config):
     full_table_name = f'{schema}.{table}'
     mode = config['load']['mode']
 
-    # engine = PostgresHook(postgres_conn_id=conn_id).get_sqlalchemy_engine()
-
-    dsn = Connection.from_config(conn_id).render_db_dsn()
-    engine = create_engine(dsn)
+    engine = get_engine(conn_id)
 
     db_actions_map = {
         'incremental': [dummy_db_action],
