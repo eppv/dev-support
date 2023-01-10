@@ -29,12 +29,18 @@ def rename_columns(df, config):
     df.rename(columns=mapper, inplace=True)
     return df
 
+def remove_raws_with_missing_values(df, config):
+    columns_with_nan_values = config['columns_with_nan_values']
+    df.dropna(subset=columns_with_nan_values, inplace=True)
+
+    return df
 
 def transform(df, transform_config):
     column_name = transform_config['column_name']
     columns_list = transform_config['columns_list']
     df_with_headers = define_headers(df, search_col_name=column_name)
     df_with_cols_renamed = rename_columns(df_with_headers, transform_config)
-    df_selected = df_with_cols_renamed[columns_list]
-    df_selected.dropna(thresh=3, inplace=True)
-    return df_selected
+    df_selected = df_with_cols_renamed[[column for column in df_with_cols_renamed.columns if column in columns_list]]
+    clean_df = remove_raws_with_missing_values(df_selected, transform_config)
+
+    return clean_df
