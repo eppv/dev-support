@@ -101,3 +101,59 @@ def delete_records_by_period(engine, table, params):
     print(res)
 
 
+def add_column(engine, table, column: str, dtype='text', default=None):
+    query = f"ALTER TABLE {table} ADD COLUMN IF NOT EXISTS {column} {dtype} DEFAULT {default};"
+    sql_execute(engine, query=query)
+    print(f'Column {column} ({dtype}) added to table {table}')
+
+
+def add_columns(engine, table, columns: list, dtype='text', default=None):
+    session = sessionmaker(engine)()
+    try:
+        for column in columns:
+            query = f"ALTER TABLE {table} ADD COLUMN IF NOT EXISTS {column} {dtype} DEFAULT {default};"
+            session.execute(text(query))
+        session.commit()
+    except sql_prog_exc as exc:
+        print(f'Cannot execute query on {engine.engine}. Programming error.')
+        raise exc
+    print(f'Columns {columns} ({dtype}) added to table {table}')
+
+
+def add_columns_to_multiple_tables(engine, tables: list, columns: list, dtype='text', default=None):
+    session = sessionmaker(engine)()
+    try:
+        for table in tables:
+            for column in columns:
+                query = f"ALTER TABLE {table} ADD COLUMN IF NOT EXISTS {column} {dtype} DEFAULT {default};"
+                session.execute(text(query))
+        session.commit()
+    except sql_prog_exc as exc:
+        print(f'Cannot execute query on {engine.engine}. Programming error.')
+        raise exc
+    print(f'Columns: \n{columns} ({dtype}) \nadded to tables: \n{tables}')
+
+
+def drop_columns_from_multiple_tables(engine, tables: list, columns: list):
+    session = sessionmaker(engine)()
+    try:
+        for table in tables:
+            for column in columns:
+                query = f"ALTER TABLE {table} DROP COLUMN IF EXISTS {column};"
+                session.execute(text(query))
+        session.commit()
+    except sql_prog_exc as exc:
+        print(f'Cannot execute query on {engine.engine}. Programming error.')
+        raise exc
+    print(f'Columns: \n{columns} \ndropped from tables: \n{tables}')
+
+
+def get_columns(engine, schema, table, **kwargs):
+    query = f"""
+    select column_name, data_type
+    from INFORMATION_SCHEMA.COLUMNS
+    where TABLE_SCHEMA = \'{schema}\' 
+      and TABLE_NAME = \'{table}\';
+    """
+    result = sql_execute(engine, query=query).fetchall()
+    return result

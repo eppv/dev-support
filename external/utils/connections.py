@@ -26,16 +26,10 @@ class Connection:
         print('No connection with such id defined in configuration file')
 
     def render_db_dsn(self):
-        host = self.host
-        port = self.port
-        dialect = self.type
-        user = self.login
-        pwd = self.password
-        db = self.schema
-        dsn = f"{dialect}://" \
-              f"{user}:{pwd}" \
-              f"@{host}:{port}" \
-              f"/{db}"
+        dsn = f"{self.type}://" \
+              f"{self.login}:{self.password}" \
+              f"@{self.host}:{self.port}" \
+              f"/{self.schema}"
 
         return dsn
 
