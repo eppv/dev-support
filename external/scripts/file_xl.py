@@ -8,7 +8,7 @@ from external.utils.configparse import get_etl_config
 from external.utils.db import apply_on_db, \
     dummy_db_action
 from external.utils.var import show_exec_time
-from external.utils.connections import Connection
+from external.native.connections import Connection
 
 
 script_id = 'example'

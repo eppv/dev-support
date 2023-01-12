@@ -1,9 +1,5 @@
 import os
-
-from sqlalchemy import create_engine
-# from airflow.providers.postgres.hooks.postgres import PostgresHook
-from external.native.db import get_engine
-
+from external.native.connections import get_engine
 from external.etl.file.excel import extract, is_valid
 from external.etl.sql import load_clean
 from external.utils.db import dummy_db_action, grant_preset_priveleges, get_loaded_src_ids, \
@@ -48,7 +44,6 @@ def print_etl_debug_msg(config):
 
 def check_missing_sources(sources, conn_id, table):
     engine = get_engine(conn_id)
-    # engine = PostgresHook(postgres_conn_id=conn_id).get_sqlalchemy_engine()
     loaded = get_loaded_src_ids(engine, table)
     missing = [path for path in sources if path not in loaded]
 

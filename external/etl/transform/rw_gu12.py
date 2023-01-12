@@ -29,11 +29,13 @@ def rename_columns(df, config):
     df.rename(columns=mapper, inplace=True)
     return df
 
+
 def remove_raws_with_missing_values(df, config):
     columns_with_nan_values = config['columns_with_nan_values']
     df.dropna(subset=columns_with_nan_values, inplace=True)
 
     return df
+
 
 def transform(df, transform_config):
     column_name = transform_config['column_name']

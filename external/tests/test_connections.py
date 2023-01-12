@@ -1,5 +1,5 @@
 
-from external.utils.connections import get_connection
+from external.native.connections import get_connection
 
 
 def test_get_connection():
