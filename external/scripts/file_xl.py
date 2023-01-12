@@ -5,7 +5,7 @@ from sqlalchemy import create_engine
 
 from external.etl.common import extract, create_backup, load
 from external.utils.configparse import get_etl_config
-from external.utils.db import apply_on_db, \
+from external.utils.sql.db import apply_on_db, \
     dummy_db_action
 from external.utils.var import show_exec_time
 from external.native.connections import Connection

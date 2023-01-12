@@ -38,13 +38,13 @@ def parse_soap_xml(rxml, config):
 def get_extract(config):
     src_conn = Connection.from_config(config['extract']['src']['conn_id'])
     params = config['extract']['src']['params']
+
     extractor = HttpGetExtractor(uri=src_conn.host, params=params)
     response = extractor.extract().output
     response.raise_for_status()
     raw_xml = response.content
 
     dump_path = render_dump_path(config, extractor.extraction_timestamp)
-
     meta = {'extraction_timestamp': extractor.extraction_timestamp,
             'record_source': f"{extractor.uri}?{params['soap_method']}"}
 

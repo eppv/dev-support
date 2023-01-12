@@ -2,8 +2,9 @@ import os
 from external.native.connections import get_engine
 from external.etl.file.excel import extract, is_valid
 from external.etl.sql import load_clean
-from external.utils.db import dummy_db_action, grant_preset_priveleges, get_loaded_src_ids, \
-    truncate_table, apply_on_db
+from external.utils.sql.db import dummy_db_action, truncate_table, apply_on_db
+from external.utils.sql.grant import grant_preset_priveleges
+from external.utils.sql.introspection import get_loaded_src_ids
 from external.utils.var import color
 
 
@@ -83,7 +84,7 @@ def dir_extract(config, custom_transformation=None):
 
 
 def dir_load(meta, config):
-    from external.utils.db import sql_prog_exc
+    from external.utils.sql.db import sql_prog_exc
 
     sink = config['load']['sink']
     conn_id = sink['conn_id']

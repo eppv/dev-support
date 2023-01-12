@@ -2,6 +2,7 @@
 import sqlalchemy.exc
 from sqlalchemy import text
 from sqlalchemy.orm import sessionmaker
+
 from external.utils.var import color
 from time import sleep
 from typing import Optional
@@ -50,42 +51,19 @@ def ping_table(engine, table, **kwargs):
 
 def truncate_table(engine, table, **kwargs):
     query = f'truncate table {table}'
+    act = 'truncated'
     if ping_table(engine, table, **kwargs):
-        _throw_warning(table, act='truncated')
+        _throw_warning(table, act=act)
         sql_execute(engine, query)
-        print(f'Table {table} truncated.')
+        print(f'Table {table} {act}.')
 
 
 def drop_table_if_exists(engine, table, **kwargs):
     query = f'drop table if exists {table}'
-    _throw_warning(table, act='dropped')
+    act = 'dropped'
+    _throw_warning(table, act=act)
     sql_execute(engine, query)
-    print(f'Table {table} truncated.')
-
-
-def get_loaded_src_ids(engine, table, **kwargs):
-    query = f'select distinct record_source from {table};'
-
-    try:
-        src_list = sql_execute(engine, query)
-        names = [name for name, in src_list]
-        return names
-    except sqlalchemy.exc.ProgrammingError:
-        print(f'Table "{color(table, "yellow")}" does not exist! Filenames list is empty!')
-        return []
-
-
-def grant_preset_priveleges(engine, table, **kwargs):
-    query = f"""
-        grant all privileges on table {table} to data_engineer, service;
-        grant select on table {table} to analyst, power_bi;
-    """
-    try:
-        sql_execute(engine, query)
-        print(f'Priveleges granted on table {table}')
-    except sqlalchemy.exc.ProgrammingError:
-        print(f'Cannot connect to table {color(table, "yellow")}')
-        return None
+    print(f'Table {table} {act}.')
 
 
 def dummy_db_action(engine, table, **kwargs):
@@ -148,12 +126,24 @@ def drop_columns_from_multiple_tables(engine, tables: list, columns: list):
     print(f'Columns: \n{columns} \ndropped from tables: \n{tables}')
 
 
-def get_columns(engine, schema, table, **kwargs):
-    query = f"""
-    select column_name, data_type
-    from INFORMATION_SCHEMA.COLUMNS
-    where TABLE_SCHEMA = \'{schema}\' 
-      and TABLE_NAME = \'{table}\';
-    """
-    result = sql_execute(engine, query=query).fetchall()
-    return result
+def add_load_timestamp(engine, table, **kwargs):
+    query = f"ALTER TABLE {table} ADD COLUMN IF NOT EXISTS load_timestamp timestamp DEFAULT now();"
+    sql_execute(engine, query=query)
+    print(f'Column {color("load_timestamp", "yellow")} added to table {table} '
+          f'and set default for now()')
+
+
+def rename_columns(engine, table, mapping: dict, **kwargs):
+    session = sessionmaker(engine)()
+    try:
+        for old_name, new_name in mapping.items():
+                query = f"""
+                        ALTER TABLE {table} 
+                        RENAME COLUMN {old_name} TO {new_name};
+                    """
+                session.execute(text(query))
+        session.commit()
+    except sql_prog_exc as exc:
+        print(f'Cannot execute query on {engine.engine}. Programming error.')
+        raise exc
+    print(f'Columns successfully renamed.')
