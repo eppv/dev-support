@@ -58,8 +58,11 @@ def truncate_table(engine, table, **kwargs):
         print(f'Table {table} {act}.')
 
 
-def drop_table_if_exists(engine, table, **kwargs):
-    query = f'drop table if exists {table}'
+def drop_table_if_exists(engine, table, cascade=False, **kwargs):
+    if cascade:
+        query = f'drop table if exists {table} cascade'
+    else:
+        query = f'drop table if exists {table}'
     act = 'dropped'
     _throw_warning(table, act=act)
     sql_execute(engine, query)
@@ -112,12 +115,13 @@ def add_columns_to_multiple_tables(engine, tables: list, columns: list, dtype='t
     print(f'Columns: \n{columns} ({dtype}) \nadded to tables: \n{tables}')
 
 
-def drop_columns_from_multiple_tables(engine, tables: list, columns: list):
+def drop_columns_from_multiple_tables(engine, tables: list, columns: list, cascade=False):
     session = sessionmaker(engine)()
+    cascade_statement = ' cascade' if cascade else ''
     try:
         for table in tables:
             for column in columns:
-                query = f"ALTER TABLE {table} DROP COLUMN IF EXISTS {column};"
+                query = f"ALTER TABLE {table} DROP COLUMN IF EXISTS {column}{cascade_statement};"
                 session.execute(text(query))
         session.commit()
     except sql_prog_exc as exc:
