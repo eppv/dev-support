@@ -1,0 +1,7 @@
+
+SQLAlchemy~=1.4.0
+PyYAML~=6.0
+witness-etl~=0.0.4
+pandas~=1.5.0
+openpyxl~=3.0.10
+psycopg2-binary

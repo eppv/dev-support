@@ -8,6 +8,20 @@ venv/
 env/
 .env
 
+# python
+*__pycache__/
+
+
+# pytest
+.pytest_cache/
+*.pytest_cache
+
+
+# config
+*config
+config/
+
 # temp
+external/temp/
 temp/
 *.tmp
