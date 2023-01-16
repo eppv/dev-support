@@ -1,4 +1,5 @@
 import os
+from pathlib import Path
 from external.native.connections import get_engine
 from external.etl.file.excel import extract, is_valid
 from external.etl.sql import load_clean
@@ -9,11 +10,11 @@ from external.utils.var import color
 
 
 def get_filepaths(dirpath):
-    files_roots = []
-    for root, dirs, filenames in os.walk(dirpath):
-        for filename in filenames:
-            files_roots.append(os.path.join(root, filename))
-
+    dirpath = Path(dirpath)
+    if not dirpath.exists():
+        print(f"The provided path: {dirpath} does not exist.")
+        return None
+    files_roots = [file for file in dirpath.rglob('*')]
     return files_roots
 
 
@@ -51,7 +52,7 @@ def check_missing_sources(sources, conn_id, table):
     return missing
 
 
-def dir_extract(config, custom_transformation=None):
+def dir_extract(config, transform=None):
 
     src = config['extract']['src']
     sink = config['load']['sink']
@@ -77,8 +78,10 @@ def dir_extract(config, custom_transformation=None):
     for uri in files_to_extract:
         file_config = config.copy()
         file_config['extract']['src']['uri'] = uri
-        meta = extract(config=config, transformation=custom_transformation)
+        meta = extract(config=config, transform=transform)
         extracted.append(meta)
+
+    extracted = [meta for uri in files_to_extract]
 
     return extracted
 

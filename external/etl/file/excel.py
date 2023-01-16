@@ -44,7 +44,7 @@ def _extract_and_normalize(extractor, config, transformation=None):
     return extractor.output
 
 
-def extract(config, transformation=None):
+def extract(config, transform=None):
 
     src_cfg = config['extract']['src']
     uri = src_cfg['uri']
@@ -53,14 +53,14 @@ def extract(config, transformation=None):
     if not is_excel_format(uri):
         return None
 
-    if transformation is not None:
+    if transform is not None:
         tsf_config = config['transform']
     else:
         tsf_config = None
 
     extractor = PandasExcelExtractor(**src_cfg, dtype='string',)
     print(f'Extracting from {uri}')
-    output = _extract_and_normalize(extractor, config=tsf_config, transformation=transformation)
+    output = _extract_and_normalize(extractor, config=tsf_config, transformation=transform)
 
     batch = Batch(data=output['data'], meta=output['meta'])
 
