@@ -81,8 +81,6 @@ def dir_extract(config, transform=None):
         meta = extract(config=config, transform=transform)
         extracted.append(meta)
 
-    extracted = [meta for uri in files_to_extract]
-
     return extracted
 
 
