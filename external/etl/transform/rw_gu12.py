@@ -27,12 +27,13 @@ def rename_column(column_name, config):
 def rename_columns(df, config):
     mapper = {name: rename_column(name, config) for name in df.columns}
     df.rename(columns=mapper, inplace=True)
+    df.rename(columns=str.strip, inplace=True)
     return df
 
 
-def remove_raws_with_missing_values(df, config):
-    columns_with_nan_values = config['columns_with_nan_values']
-    df.dropna(subset=columns_with_nan_values, inplace=True)
+def remove_rows_with_missing_values(df, config):
+    columns_with_missing_values = config['columns_with_missing_values']
+    df.dropna(subset=columns_with_missing_values, inplace=True)
 
     return df
 
@@ -43,6 +44,6 @@ def transform(df, transform_config):
     df_with_headers = define_headers(df, search_col_name=column_name)
     df_with_cols_renamed = rename_columns(df_with_headers, transform_config)
     df_selected = df_with_cols_renamed[[column for column in df_with_cols_renamed.columns if column in columns_list]]
-    clean_df = remove_raws_with_missing_values(df_selected, transform_config)
+    clean_df = remove_rows_with_missing_values(df_selected, transform_config)
 
     return clean_df
