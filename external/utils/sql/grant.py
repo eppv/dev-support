@@ -1,6 +1,6 @@
 import sqlalchemy.exc
 
-from external.utils.sql.db import sql_execute
+from external.utils.sql.common import sql_execute
 from external.utils.var import color
 
 
