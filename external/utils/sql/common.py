@@ -23,7 +23,8 @@ def _throw_warning(table, act: str):
 def sql_execute(engine, query):
     session = sessionmaker(engine)()
     try:
-        result = session.execute(text(query))
+        cursor = session.execute(text(query))
+        result = cursor.fetchall()
         session.commit()
         return result
     except sql_prog_exc as exc:

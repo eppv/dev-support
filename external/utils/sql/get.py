@@ -11,5 +11,6 @@ def get_by_period(engine, table, period_col, start, end, limit=None, **kwargs):
             f'where {period_col} between \'{start}\' and \'{end}\'' \
             + limit_exp \
             + ';'
-    result = sql_execute(engine, query).all()
+    result = sql_execute(engine, query)
+
     return result
