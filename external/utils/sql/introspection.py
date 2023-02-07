@@ -11,7 +11,7 @@ def get_columns(engine, schema, table, **kwargs):
     where TABLE_SCHEMA = \'{schema}\' 
       and TABLE_NAME = \'{table}\';
     """
-    result = sql_execute(engine, query=query).fetchall()
+    result = sql_execute(engine, query=query)
     return result
 
 

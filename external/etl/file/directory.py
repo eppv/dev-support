@@ -115,7 +115,7 @@ def dir_load(meta, config):
 
     for batch_meta in meta:
         if batch_meta is not None:
-            load_clean(batch_meta, engine, config=sink)
+            load_clean(meta=batch_meta, config=config)
 
     apply_on_db(engine=engine, table=full_table_name, actions=db_on_end)
 

@@ -27,6 +27,10 @@ def sql_execute(engine, query):
         result = cursor.fetchall()
         session.commit()
         return result
+    except sqlalchemy.exc.ResourceClosedError:
+        cursor = session.execute(text(query))
+        session.commit()
+        return cursor
     except sql_prog_exc as exc:
         print(f'Cannot execute query on {engine.engine}. Programming error.')
         raise exc
