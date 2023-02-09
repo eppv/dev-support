@@ -46,7 +46,7 @@ def apply_on_db(engine, table, actions: Optional[list] = None, **kwargs):
 def ping_table(engine, table, **kwargs):
     query = f"select record_source from {table} limit 1;"
     try:
-        res = sql_execute(engine, query).fetchall()
+        res = sql_execute(engine, query)
         print(f'Table check on selecting record_source: {res}')
         return True
     except sql_prog_exc as exc:
