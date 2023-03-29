@@ -7,3 +7,4 @@ openpyxl~=3.0.10
 psycopg2-binary
 pendulum~=2.1.0
 pymssql~=2.2.7
+exchangelib~=4.9.0

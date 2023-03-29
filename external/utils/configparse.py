@@ -27,7 +27,7 @@ def read_query_file(filepath):
             continue
 
 
-def get_etl_config(path):
+def get_config(path):
     abs_config_path = os.path.abspath(path) + r'/config.yml'
     config = read_yaml(abs_config_path)['dags']
     return config
