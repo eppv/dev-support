@@ -1,20 +1,21 @@
+import os
+
 from external.utils.exchange_server.account import get_account
 from external.utils.configparse import get_config
+from external.utils.var import color, to_datetime_string
+from external.etl.file import excel, directory
 from exchangelib import FileAttachment
 from datetime import datetime
-import pandas as pd
-
+from pytz import timezone
 
 def get_items(account, folder, received_start, received_end):
     inbox = account.inbox
-    tz = account.default_timezone
     src_folder = inbox.glob(f'**/{folder}')
     filtered_by_datetime_received = src_folder.filter(datetime_received__range=(received_start, received_end))
 
     items = []
     print('The following items found:')
     for item in filtered_by_datetime_received:
-        received = item.datetime_received.astimezone(tz=tz)
         print(f'Type: {item.ELEMENT_NAME}, Subject:{item.subject}')
         items.append(item)
 
@@ -26,32 +27,90 @@ def get_excel_attachments(item):
     for attachment in item.attachments:
         if isinstance(attachment, FileAttachment) and attachment.name.endswith(('.xlsx', '.xls')):
             print(f'Attachment: {attachment.name}')
-            excel_attachments.append(attachment.content)
+            excel_attachments.append(attachment)
             return excel_attachments
 
 
-def extract(config):
+def excel_extract_from_attachment(attachment, config):
+    from witness import Batch
+    from witness.providers.pandas.extractors import PandasExcelExtractor
+
+    src_config = config['extract']['src']
+    sheet_name = src_config.setdefault('sheet_name', 0)
+    header = src_config.setdefault('header', 0)
+    dump = config['dump']
+    record_source_array = [src_config['mail']['server'],
+                           src_config['mail']['folder'],
+                           attachment.name,
+                           to_datetime_string(attachment.last_modified_time)]
+
+    print(attachment.last_modified_time)
+
+    extractor = PandasExcelExtractor(uri=attachment.content,
+                                     sheet_name=sheet_name,
+                                     header=header,
+                                     dtype='str')
+
+    output = excel.extract_and_normalize(extractor, config)
+    batch = Batch(data=output['data'], meta=output['meta'])
+    batch.meta['record_source'] = '/'.join(record_source_array)
+
+    extraction_ts_str = batch.meta['extraction_timestamp'].strftime('%Y-%m-%d_%H-%M-%S_%f')
+    dump_path = f"{dump}/dump_{src_config['mail']['folder']}_{extraction_ts_str}"
+
+    batch.dump(dump_path)
+    print(f'+ Batch from {color(attachment.name, "yellow")} extracted and persisted.')
+
+    return batch.meta
+
+
+
+
+def extract(config, transform=None):
     src_config = config['extract']['src']
 
     my_account = get_account(server=src_config['mail']['server'],
                              login=src_config['mail']['login'],
                              password=src_config['mail']['password'])
     target_folder = src_config['mail']['folder']
-    acc_tz = my_account.default_timezone
-    start = datetime(2023, 3, 29, tzinfo=acc_tz)
-    end = datetime(2023, 3, 30, tzinfo=acc_tz)
+    local_tz_name = os.getenv('AIRFLOW__CORE__DEFAULT_TIMEZONE')
+    local_tz = timezone(local_tz_name)
 
-    messages = get_items(my_account, folder=target_folder, received_start=start, received_end=end)
-    files_to_extract = []
+    # received_start = src_config['mail']['received']['start']
+    # received_end = src_config['mail']['received']['end']
+
+    received_start = src_config['mail']['received']['start']
+    received_end = src_config['mail']['received']['end']
+
+    received_start_dt = datetime.fromisoformat(received_start).astimezone(local_tz)
+    received_end_dt = datetime.fromisoformat(received_end).astimezone(local_tz)
+    print(f'String start: {received_start},tz aware dt: {received_start_dt}')
+
+    messages = get_items(my_account,
+                         folder=target_folder,
+                         received_start=received_start_dt,
+                         received_end=received_end_dt)
+
+    attachments_to_extract = []
     for msg in messages:
-        files_to_extract.extend(get_excel_attachments(msg))
+        attachments_to_extract.extend(get_excel_attachments(msg))
 
-    return [pd.read_excel(file, header=5) for file in files_to_extract]
+
+    extracted = []
+
+    for attachment in attachments_to_extract:
+        meta = excel_extract_from_attachment(attachment, config)
+        extracted.append(meta)
+
+    return extracted
 
 
 if __name__ == '__main__':
 
     dag_id = 'raw_1c_prod_rep_cargo_forwarded_by_vmtp'
     CONFIG = get_config('../../config/1c_prod/cargo_forwarded_by_vmtp')[dag_id]
-    dfs = extract(CONFIG)
+    extr_meta = extract(CONFIG)
 
+    print(extr_meta)
+
+    directory.dir_load(meta=extr_meta, config=CONFIG)

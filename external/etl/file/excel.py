@@ -1,5 +1,4 @@
 import os
-from os.path import split
 
 from witness import Batch
 from witness.providers.pandas.extractors import PandasExcelExtractor
@@ -28,7 +27,7 @@ def _handle_single_sheet(output, config, transformation=None):
     return [transformed_df]
 
 
-def _extract_and_normalize(extractor, config, transformation=None):
+def extract_and_normalize(extractor, config, transformation=None):
     from pandas import concat
     extractor.extract()
     raw_output = extractor.output
@@ -60,11 +59,11 @@ def extract(config, transform=None):
 
     extractor = PandasExcelExtractor(**src_cfg, dtype='string',)
     print(f'Extracting from {uri}')
-    output = _extract_and_normalize(extractor, config=tsf_config, transformation=transform)
+    output = extract_and_normalize(extractor, config=tsf_config, transformation=transform)
 
     batch = Batch(data=output['data'], meta=output['meta'])
 
-    filename = split(uri)[1]
+    filename = os.path.split(uri)[1]
     extraction_ts_str = batch.meta['extraction_timestamp'].strftime('%Y-%m-%d_%H-%M-%S_%f')
     dump_path = f"{dump_dir}/dump_{filename}_{extraction_ts_str}"
     batch.dump(dump_path)
