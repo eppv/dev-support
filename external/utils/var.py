@@ -43,3 +43,4 @@ def to_datetime_string(dt):
     elif isinstance(dt, datetime.datetime):
         dt_str = dt.strftime('%Y-%m-%d %H-%M-%S')
         return dt_str
+    else: return dt

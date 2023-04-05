@@ -1,9 +1,8 @@
 import os
 
 from external.utils.exchange_server.account import get_account
-from external.utils.configparse import get_config
 from external.utils.var import color, to_datetime_string
-from external.etl.file import excel, directory
+from external.etl.file import excel
 from exchangelib import FileAttachment
 from datetime import datetime
 from pytz import timezone
@@ -31,7 +30,7 @@ def get_excel_attachments(item):
             return excel_attachments
 
 
-def excel_extract_from_attachment(attachment, config):
+def excel_extract_from_attachment(attachment, config, transform=None):
     from witness import Batch
     from witness.providers.pandas.extractors import PandasExcelExtractor
 
@@ -51,7 +50,12 @@ def excel_extract_from_attachment(attachment, config):
                                      header=header,
                                      dtype='str')
 
-    output = excel.extract_and_normalize(extractor, config)
+    if transform is not None:
+        tsf_config = config['transform']
+    else:
+        tsf_config = None
+
+    output = excel.extract_and_normalize(extractor, tsf_config=tsf_config, transform=transform)
     batch = Batch(data=output['data'], meta=output['meta'])
     batch.meta['record_source'] = '/'.join(record_source_array)
 
@@ -99,18 +103,7 @@ def extract(config, transform=None):
     extracted = []
 
     for attachment in attachments_to_extract:
-        meta = excel_extract_from_attachment(attachment, config)
+        meta = excel_extract_from_attachment(attachment, config, transform=transform)
         extracted.append(meta)
 
     return extracted
-
-
-if __name__ == '__main__':
-
-    dag_id = 'raw_1c_prod_rep_cargo_forwarded_by_vmtp'
-    CONFIG = get_config('../../config/1c_prod/cargo_forwarded_by_vmtp')[dag_id]
-    extr_meta = extract(CONFIG)
-
-    print(extr_meta)
-
-    directory.dir_load(meta=extr_meta, config=CONFIG)

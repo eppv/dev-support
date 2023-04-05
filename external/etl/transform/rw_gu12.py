@@ -1,17 +1,7 @@
 import pandas as pd
+from external.etl.transform import schema, rows
 
 pd.set_option('mode.chained_assignment', None)
-
-
-def define_headers(df, search_col_name, search_col_idx=0):
-    df_first_column = df.iloc[:, search_col_idx]
-    headers_row = df_first_column.eq(search_col_name)
-    header_idx = df[headers_row].index.values[0]
-    df.columns = df.iloc[header_idx]
-    df = df[header_idx + 1:]
-
-    return df
-
 
 def rename_column(column_name, config):
     incorrect_names = config['column_rename']['incorrect_column_names']
@@ -41,9 +31,10 @@ def remove_rows_with_missing_values(df, config):
 def transform(df, transform_config):
     column_name = transform_config['column_name']
     columns_list = transform_config['columns_list']
-    df_with_headers = define_headers(df, search_col_name=column_name)
+    df_with_headers = schema.define_headers(df, search_col_name=column_name)
     df_with_cols_renamed = rename_columns(df_with_headers, transform_config)
     df_selected = df_with_cols_renamed[[column for column in df_with_cols_renamed.columns if column in columns_list]]
-    clean_df = remove_rows_with_missing_values(df_selected, transform_config)
+    columns_to_check = transform_config['drop_na_rows']['columns_to_check']
+    clean_df = rows.drop_na_rows(df_selected, columns_to_check=columns_to_check)
 
     return clean_df

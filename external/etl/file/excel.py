@@ -5,12 +5,12 @@ from witness.providers.pandas.extractors import PandasExcelExtractor
 from external.utils.var import color
 
 
-def _handle_multi_sheet(output, config, transformation=None):
+def _handle_multi_sheet(output, tsf_config, transformation=None):
     dfs = []
     for sheet_name, df in output.items():
         df.dropna(axis=1, inplace=True, how='all')
         if transformation is not None:
-            transformed_df = transformation(df, config)
+            transformed_df = transformation(df, tsf_config)
         else:
             transformed_df = df
         transformed_df['sheet_name'] = sheet_name
@@ -18,22 +18,22 @@ def _handle_multi_sheet(output, config, transformation=None):
     return dfs
 
 
-def _handle_single_sheet(output, config, transformation=None):
+def _handle_single_sheet(output, tsf_config, transformation=None):
     output.dropna(axis=1, inplace=True, how='all')
     if transformation is not None:
-        transformed_df = transformation(output, config)
+        transformed_df = transformation(output, tsf_config)
     else:
         transformed_df = output
     return [transformed_df]
 
 
-def extract_and_normalize(extractor, config, transformation=None):
+def extract_and_normalize(extractor, tsf_config, transform=None):
     from pandas import concat
     extractor.extract()
     raw_output = extractor.output
 
-    dfs = _handle_multi_sheet(raw_output, config, transformation) if extractor.sheet_name is None \
-        else _handle_single_sheet(raw_output, config, transformation)
+    dfs = _handle_multi_sheet(raw_output, tsf_config, transform) if extractor.sheet_name is None \
+        else _handle_single_sheet(raw_output, tsf_config, transform)
 
     united_df = concat(dfs)
     setattr(extractor, 'output', united_df)
@@ -59,7 +59,7 @@ def extract(config, transform=None):
 
     extractor = PandasExcelExtractor(**src_cfg, dtype='string',)
     print(f'Extracting from {uri}')
-    output = extract_and_normalize(extractor, config=tsf_config, transformation=transform)
+    output = extract_and_normalize(extractor, tsf_config=tsf_config, transform=transform)
 
     batch = Batch(data=output['data'], meta=output['meta'])
 
