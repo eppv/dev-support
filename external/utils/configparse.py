@@ -31,3 +31,9 @@ def get_config(path):
     abs_config_path = os.path.abspath(path) + r'/config.yml'
     config = read_yaml(abs_config_path)['dags']
     return config
+
+
+def get_trf_seq(config):
+    trf_config = config['transform']
+    trf_seq = [*trf_config.keys()]
+    return trf_seq

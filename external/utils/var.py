@@ -96,4 +96,3 @@ def extract_datetime_from_path(path):
         except ValueError:
             continue
     return None
-
