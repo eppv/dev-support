@@ -3,37 +3,43 @@ import os
 from witness import Batch
 from witness.providers.pandas.extractors import PandasExcelExtractor
 from external.utils.var import color
+from external.etl.transform.scenario import Scenario
+from external.utils.configparse import get_trf_seq
 
 
-def _handle_multi_sheet(output, tsf_config, transformation=None):
+def _transform(df, config):
+    if config is not None:
+        seq = get_trf_seq(config)
+        scenario = Scenario(sequence=seq, config=config)
+        transformed_df = scenario.apply(df)
+        return transformed_df
+    else:
+        return df
+
+
+def _handle_multi_sheet(output, config):
     dfs = []
     for sheet_name, df in output.items():
         df.dropna(axis=1, inplace=True, how='all')
-        if transformation is not None:
-            transformed_df = transformation(df, tsf_config)
-        else:
-            transformed_df = df
+        transformed_df = _transform(df, config)
         transformed_df['sheet_name'] = sheet_name
         dfs.append(transformed_df)
     return dfs
 
 
-def _handle_single_sheet(output, tsf_config, transformation=None):
+def _handle_single_sheet(output, config):
     output.dropna(axis=1, inplace=True, how='all')
-    if transformation is not None:
-        transformed_df = transformation(output, tsf_config)
-    else:
-        transformed_df = output
+    transformed_df = _transform(output, config)
     return [transformed_df]
 
 
-def extract_and_normalize(extractor, tsf_config, transform=None):
+def extract_and_normalize(extractor, config):
     from pandas import concat
     extractor.extract()
     raw_output = extractor.output
 
-    dfs = _handle_multi_sheet(raw_output, tsf_config, transform) if extractor.sheet_name is None \
-        else _handle_single_sheet(raw_output, tsf_config, transform)
+    dfs = _handle_multi_sheet(raw_output, config) if extractor.sheet_name is None \
+        else _handle_single_sheet(raw_output, config)
 
     united_df = concat(dfs)
     setattr(extractor, 'output', united_df)
@@ -43,7 +49,7 @@ def extract_and_normalize(extractor, tsf_config, transform=None):
     return extractor.output
 
 
-def extract(config, transform=None):
+def extract(config):
 
     src_cfg = config['extract']['src']
     uri = src_cfg['uri']
@@ -52,14 +58,14 @@ def extract(config, transform=None):
     if not is_excel_format(uri):
         return None
 
-    if transform is not None:
+    try:
         tsf_config = config['transform']
-    else:
+    except KeyError:
         tsf_config = None
 
     extractor = PandasExcelExtractor(**src_cfg, dtype='string',)
     print(f'Extracting from {uri}')
-    output = extract_and_normalize(extractor, tsf_config=tsf_config, transform=transform)
+    output = extract_and_normalize(extractor, config=tsf_config)
 
     batch = Batch(data=output['data'], meta=output['meta'])
 

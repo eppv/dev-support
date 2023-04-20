@@ -14,6 +14,11 @@ REGISTRY = {
 
 class Scenario:
 
+    """
+    sequence - a list of transform function names
+    config - a transform section of the config file
+    """
+
     def __init__(self, sequence, config=None):
 
         self.sequence: list[callable] = sequence

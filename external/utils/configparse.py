@@ -34,6 +34,10 @@ def get_config(path):
 
 
 def get_trf_seq(config):
-    trf_config = config['transform']
+    try:
+        trf_config = config['transform']
+    except KeyError:
+        trf_config = config
+
     trf_seq = [*trf_config.keys()]
     return trf_seq
