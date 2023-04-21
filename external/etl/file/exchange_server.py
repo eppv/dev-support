@@ -4,15 +4,20 @@ from external.utils.exchange_server.account import get_account
 from external.utils.var import color, to_datetime_string
 from external.etl.file import excel
 from exchangelib import FileAttachment
-from datetime import datetime
+from datetime import datetime, timedelta
 from pytz import timezone
+from typing import Optional
 
 LOCAL_TZ_NAME = os.getenv('AIRFLOW__CORE__DEFAULT_TIMEZONE')
 LOCAL_TZ = timezone(LOCAL_TZ_NAME)
 
-def get_items(account, folder, received_start, received_end):
+def get_items(account,
+              folder:Optional[str] = None,
+              received_start:datetime = (datetime.now() + timedelta(days=1)).astimezone(LOCAL_TZ),
+              received_end:datetime = datetime.now().astimezone(LOCAL_TZ)
+              ):
     inbox = account.inbox
-    src_folder = inbox.glob(f'**/{folder}')
+    src_folder = inbox.glob(f'**/{folder}') if folder is not None else inbox
     filtered_by_datetime_received = src_folder.filter(datetime_received__range=(received_start, received_end))
 
     items = []
@@ -47,7 +52,7 @@ def get_attachments_to_extract_with_meta(messages: list):
 
     return attachments_with_meta_to_extract
 
-def excel_extract_from_attachment(attachment, config, transform=None):
+def excel_extract_from_attachment(attachment, config):
     from witness import Batch
     from witness.providers.pandas.extractors import PandasExcelExtractor
 
@@ -67,12 +72,12 @@ def excel_extract_from_attachment(attachment, config, transform=None):
                                      header=header,
                                      dtype='str')
 
-    if transform is not None:
+    try:
         tsf_config = config['transform']
-    else:
+    except KeyError:
         tsf_config = None
 
-    output = excel.extract_and_normalize(extractor, tsf_config=tsf_config, transform=transform)
+    output = excel.extract_and_normalize(extractor, config=tsf_config)
     batch = Batch(data=output['data'], meta=output['meta'])
     batch.meta['record_source'] = '/'.join(record_source_array)
 
@@ -110,7 +115,7 @@ def extract(config, transform=None):
 
     extracted_meta = []
     for attachment, item_meta in attachments_to_extract_with_meta.items():
-        meta = excel_extract_from_attachment(attachment, config, transform=transform)
+        meta = excel_extract_from_attachment(attachment, config)
         meta.update(item_meta)
         extracted_meta.append(meta)
 
