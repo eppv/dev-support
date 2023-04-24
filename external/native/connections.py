@@ -1,10 +1,12 @@
+import os
 from dataclasses import dataclass
 from typing import Optional
-from os.path import abspath
 from sqlalchemy import create_engine
 from external.utils.configparse import read_yaml
 
-default_config_path = abspath('../../config/connections.yml')
+
+EXTERNAL_MODULES_PATH = os.environ.get('EXTERNAL_MODULES_PATH')
+default_config_path = os.path.abspath(f'{EXTERNAL_MODULES_PATH}/config/connections.yml')
 
 
 @dataclass

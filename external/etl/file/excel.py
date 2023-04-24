@@ -4,13 +4,13 @@ from witness import Batch
 from witness.providers.pandas.extractors import PandasExcelExtractor
 from external.utils.var import color
 from external.etl.transform.scenario import Scenario
-from external.utils.configparse import get_trf_seq
+from external.utils.configparse import get_trf_config_and_sequence
 
 
 def _transform(df, config):
     if config is not None:
-        seq = get_trf_seq(config)
-        scenario = Scenario(sequence=seq, config=config)
+        trf_config, trf_seq = get_trf_config_and_sequence(config)
+        scenario = Scenario(sequence=trf_seq, config=trf_config)
         transformed_df = scenario.apply(df)
         return transformed_df
     else:
@@ -58,14 +58,9 @@ def extract(config):
     if not is_excel_format(uri):
         return None
 
-    try:
-        tsf_config = config['transform']
-    except KeyError:
-        tsf_config = None
-
     extractor = PandasExcelExtractor(**src_cfg, dtype='string',)
     print(f'Extracting from {uri}')
-    output = extract_and_normalize(extractor, config=tsf_config)
+    output = extract_and_normalize(extractor, config=config)
 
     batch = Batch(data=output['data'], meta=output['meta'])
 

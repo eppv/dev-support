@@ -1,14 +1,9 @@
 
 from typing import Optional
-from external.etl.transform.schema import rename_columns, select_columns, drop_na_cols, define_headers
-from external.etl.transform.rows import drop_na_rows
+from external.etl.transform.pandas import REGISTRY as PANDAS_REGISTRY
 
-REGISTRY = {
-    'rename_columns': rename_columns,
-    'select_columns': select_columns,
-    'drop_na_rows': drop_na_rows,
-    'drop_na_cols': drop_na_cols,
-    'define_headers': define_headers
+REGISTRIES = {
+    'pandas': PANDAS_REGISTRY
 }
 
 
@@ -19,17 +14,22 @@ class Scenario:
     config - a transform section of the config file
     """
 
-    def __init__(self, sequence, config=None):
+    def __init__(self,
+                 sequence: list[callable],
+                 config:Optional[dict] = None,
+                 registry: str = 'pandas'
+    ):
 
         self.sequence: list[callable] = sequence
         self.config: Optional[dict] = config
+        self.registry = REGISTRIES[registry]
 
     def apply(self, df):
         for func_name in self.sequence:
             if self.config[func_name] is None:
-                df = REGISTRY[func_name](df)
+                df = self.registry[func_name](df)
             else:
-                df = REGISTRY[func_name](df, **self.config[func_name])
+                df = self.registry[func_name](df, **self.config[func_name])
 
         return df
 

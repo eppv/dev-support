@@ -1,5 +1,5 @@
 import pandas as pd
-from external.etl.transform import schema, rows
+from external.etl.transform.pandas import schema, rows
 
 pd.set_option('mode.chained_assignment', None)
 

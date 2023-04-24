@@ -1,7 +1,8 @@
 import os
 import yaml
 
-
+EXTERNAL_MODULES_PATH = os.environ.get('EXTERNAL_MODULES_PATH')
+DEFAULT_CONFIG_PATH = os.path.abspath(f'{EXTERNAL_MODULES_PATH}/config')
 encodings = ('utf-8', 'cp1251', 'cp866', 'cp855', 'koi8_r', 'cyrillic', 'maccyrillic')
 
 
@@ -33,11 +34,11 @@ def get_config(path):
     return config
 
 
-def get_trf_seq(config):
+def get_trf_config_and_sequence(config):
     try:
         trf_config = config['transform']
     except KeyError:
         trf_config = config
 
     trf_seq = [*trf_config.keys()]
-    return trf_seq
+    return trf_config, trf_seq
