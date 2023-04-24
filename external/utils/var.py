@@ -34,6 +34,7 @@ def render_dump_path(config, extraction_timestamp):
     ts_string = extraction_timestamp.strftime('%Y-%m-%d_%H-%M-%S_%f')
     uri = f"{config['load']['sink']['schema']}_{config['load']['sink']['table']}"
     dump_path = f"{config['dump']}/dump_{uri}_{ts_string}"
+
     return dump_path
 
 
