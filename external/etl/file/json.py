@@ -10,7 +10,7 @@ class JSONFileExtractor(FileExtractor):
     def extract(self):
         self._set_extraction_timestamp()
 
-        with open(self.uri, 'r') as file:
+        with open(self.uri, 'r', encoding='utf-8') as file:
             data = json.load(file)
             setattr(self, 'output', data)
 
