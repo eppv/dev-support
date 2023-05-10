@@ -8,12 +8,13 @@ from external.utils.configparse import get_trf_config_and_sequence
 
 
 def _transform(df, config):
-    if config is not None:
+    try:
         trf_config, trf_seq = get_trf_config_and_sequence(config)
         scenario = Scenario(sequence=trf_seq, config=trf_config)
         transformed_df = scenario.apply(df)
         return transformed_df
-    else:
+    except KeyError:
+        print('No transform function found.')
         return df
 
 

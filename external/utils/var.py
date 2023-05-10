@@ -61,6 +61,7 @@ def extract_datetime_string_from_filename(filename):
         r'\d{2}-\d{2}-\d{4}',  # DD-MM-YYYY
         r'\d{2}.\d{2}.\d{4}',  # DD.MM.YYYY
         r'\d{4}\d{2}\d{2}',  # YYYYMMDD
+        r'\d{4}\d{2}\d{2}\d{2}\d{2}\d{2}'  # YYYYMMDDHHMMSS
     ]
 
     # search for datetime string in filename using each regex pattern
@@ -87,7 +88,7 @@ def extract_datetime_from_path(path):
         '%d-%m-%Y',  # DD-MM-YYYY
         '%d.%m.%Y',  # DD.MM.YYYY
         '%Y%m%d',  # YYYYMMDD
-
+        '%Y%m%d%H%M%S'  # YYYYMMDDHHMMSS
     ]
 
     for format_str in datetime_formats:

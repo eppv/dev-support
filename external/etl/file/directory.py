@@ -53,7 +53,7 @@ def check_missing_sources(sources, conn_id, table):
     return missing
 
 
-def dir_extract(config, transform=None):
+def dir_extract(config):
 
     src = config['extract']['src']
     sink = config['load']['sink']
@@ -79,7 +79,7 @@ def dir_extract(config, transform=None):
     for uri in files_to_extract:
         file_config = config.copy()
         file_config['extract']['src']['uri'] = uri
-        meta = extract(config=config, transform=transform)
+        meta = extract(config=config)
         extracted.append(meta)
 
     return extracted
