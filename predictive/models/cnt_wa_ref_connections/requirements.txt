@@ -1,0 +1,5 @@
+
+autots~=0.5.6
+pandas~=1.4.3
+witness-etl==0.0.4
+pendulum~=2.1.0
