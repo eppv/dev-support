@@ -2,18 +2,20 @@ import os
 
 from witness import Batch
 from witness.providers.pandas.extractors import PandasExcelExtractor
+from witness.providers.pandas.loaders import PandasExcelLoader
 from external.utils.var import color
 from external.etl.transform.scenario import Scenario
 from external.utils.configparse import get_trf_config_and_sequence
 
 
 def _transform(df, config):
-    if config is not None:
+    try:
         trf_config, trf_seq = get_trf_config_and_sequence(config)
         scenario = Scenario(sequence=trf_seq, config=trf_config)
         transformed_df = scenario.apply(df)
         return transformed_df
-    else:
+    except KeyError:
+        print('No transform function found.')
         return df
 
 
@@ -95,3 +97,22 @@ def is_valid(filepath):
     else:
         print(f'{filepath} is not a file. Passing...')
         return False
+
+
+def load_clean(meta, config):
+    sink = config['load']['sink']
+    uri = sink['uri']
+    sheet_name = sink.setdefault('sheet_name', 'Sheet1')
+    meta_elements = sink['meta_elements']
+
+    batch = Batch(meta=meta)
+    batch.restore()
+
+    loader = PandasExcelLoader(uri=uri, sheet_name=sheet_name)
+    batch.push(loader, meta_elements=meta_elements)
+
+    filename = os.path.split(batch.meta['record_source'])[1]
+    os.remove(batch.meta['dump_uri'])
+
+    print(f'Batch from {color(filename, "yellow")} loaded, dump cleaned.')
+    print(batch.info())

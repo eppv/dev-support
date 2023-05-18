@@ -9,25 +9,26 @@ from witness.providers.pandas.extractors import PandasExtractor
 from external import LOCAL_TZ_NAME
 from external.utils.var import color
 from external.native.connections import get_engine
-from external.utils.sql.get import get_by_period
+from external.utils.sql.get import get_by_period, get_all, get_by_custom_query
 from external.utils.var import render_dump_path
 
+FUNC_MAPPING = {
+    'get_all': get_all,
+    'get_by_period': get_by_period,
+    'get_by_custom_query': get_by_custom_query
+}
 
-def extract(config: dict,  get_func: callable = get_by_period):
+def extract(config: dict, get_func: callable = get_by_period):
     src_config = config['extract']['src']
-    params = src_config['params']
+    params = src_config.setdefault('params', {})
+
     engine = get_engine(src_config['conn_id'])
     table = f"{src_config['schema']}.{src_config['table']}"
-    period_col = params['period_col']
-    start = params['start']
-    end = params['end']
 
     extracted_data = get_func(
         engine=engine,
         table=table,
-        period_col=period_col,
-        start=start,
-        end=end
+        **params
     )
     extr_ts = pendulum.now(LOCAL_TZ_NAME)
     df = pd.DataFrame(extracted_data)
@@ -62,3 +63,4 @@ def load_clean(meta, config):
 
     print(f'Batch from {color(filename, "yellow")} loaded, dump cleaned.')
     print(batch.info())
+

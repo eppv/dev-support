@@ -1,5 +1,4 @@
 import datetime
-import pendulum
 import os
 import re
 
@@ -32,18 +31,17 @@ def color(string: str, color_name: str = 'white') -> str:
 
 def render_dump_path(config, extraction_timestamp):
     ts_string = extraction_timestamp.strftime('%Y-%m-%d_%H-%M-%S_%f')
-    uri = f"{config['load']['sink']['schema']}_{config['load']['sink']['table']}"
+    try:
+        uri = f"{config['load']['sink']['schema']}_{config['load']['sink']['table']}"
+    except KeyError:
+        root, uri = os.path.split(config['load']['sink']['uri'])
     dump_path = f"{config['dump']}/dump_{uri}_{ts_string}"
-
     return dump_path
 
 
 def to_datetime_string(dt):
 
-    if isinstance(dt, pendulum.DateTime):
-        dt_str = dt.to_datetime_string()
-        return dt_str
-    elif isinstance(dt, datetime.datetime):
+    if isinstance(dt, datetime.datetime):
         dt_str = dt.strftime('%Y-%m-%d %H:%M:%S')
         return dt_str
     else:
@@ -61,6 +59,7 @@ def extract_datetime_string_from_filename(filename):
         r'\d{2}-\d{2}-\d{4}',  # DD-MM-YYYY
         r'\d{2}.\d{2}.\d{4}',  # DD.MM.YYYY
         r'\d{4}\d{2}\d{2}',  # YYYYMMDD
+        r'\d{4}\d{2}\d{2}\d{2}\d{2}\d{2}'  # YYYYMMDDHHMMSS
     ]
 
     # search for datetime string in filename using each regex pattern
@@ -87,7 +86,7 @@ def extract_datetime_from_path(path):
         '%d-%m-%Y',  # DD-MM-YYYY
         '%d.%m.%Y',  # DD.MM.YYYY
         '%Y%m%d',  # YYYYMMDD
-
+        '%Y%m%d%H%M%S'  # YYYYMMDDHHMMSS
     ]
 
     for format_str in datetime_formats:

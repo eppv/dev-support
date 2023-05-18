@@ -1,51 +1,17 @@
 
-import os
 import warnings # предупреждения
 import pandas as pd
 import pendulum
-from datetime import date
 from autots import AutoTS
-from external import HOST_PROJ
 
 warnings.simplefilter("ignore") # убирает предупреждения
 
-def extract(config):
-    from external.native.connections import get_engine
-    from external.utils.sql.common import sql_execute
-    from external.utils.var import render_dump_path
 
-
-    src_config = config['extract']['src']
-    pred_config = config['transform']['predict']
-    engine = get_engine(src_config['conn_id'])
-    schema = src_config['schema']
-    table = src_config['table']
-
-    forecast_depth = pred_config['forecast_depth']
-    retrospective_data_depth = pred_config['retrospective_data_depth']
-    total_data_depth = forecast_depth + retrospective_data_depth
-
-    end = date.today()
-    start = ((end - pd.DateOffset(forecast_depth)).date())
-
-    # Запрос берет количество рефок на каждый день от дня предшествующего сегодняшнему
-    # на определенное количество суток (150 по-умолчанию) до сегодня.
-    query = f"""
-              select 
-                  data_extraction_date as date,
-                  count(distinct contfullnumber) as cnt_no
-              from {schema}.{table} rcc  
-              where data_extraction_date between '{(start - pd.DateOffset(total_data_depth)).date()}'
-                                             and '{end}'
-                and (split_part(cnt_location, ' ',2)::int < 31 or split_part(cnt_location, ' ',2)::int > 46)
-              group by data_extraction_date
-              """
-
-    result = sql_execute(engine=engine, query=query)
-    df = pd.DataFrame(result)
-    # dump_path = render_dump_path(config, extraction_timestamp=pendulum.now())
-    # df.to_pickle(path=dump_path)
-
+def get_data(uri):
+    data = pd.read_pickle(uri)
+    df = pd.DataFrame(data)
+    print('Got df from extracted and dumped data:')
+    print(df)
     return df
 
 
@@ -124,9 +90,9 @@ def predict(df, config):
 
 
     # dataframe для заливки в БД с прогнозом
-    result = pd.concat([forecasts_df.groupby('date').cnt_no.mean().rename('target'),
-                        forecasts_upper.groupby('date').cnt_no.mean().rename('upper'),
-                        forecasts_lower.groupby('date').cnt_no.mean().rename('lower'),
+    result = pd.concat([forecasts_df.groupby('date').cnt_quantity.mean().rename('target'),
+                        forecasts_upper.groupby('date').cnt_quantity.mean().rename('upper'),
+                        forecasts_lower.groupby('date').cnt_quantity.mean().rename('lower'),
                         ]
                        , axis = 1).reset_index()
 

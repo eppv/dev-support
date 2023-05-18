@@ -3,7 +3,6 @@ from sqlalchemy.orm import sessionmaker
 
 from external.utils.sql.common import ping_table, _throw_warning, sql_execute, sql_prog_exc
 
-
 def truncate_table(engine, table, **kwargs):
     query = f'truncate table {table}'
     act = 'truncated'
@@ -28,14 +27,16 @@ def delete_records_by_period(engine, table, params):
     column = params['column']
     try:
         period = params['period']
-        query = f"select {column} from {table} where {column} = '{period}';"
+        query = f"delete from {table} where {column} = '{period}';"
     except KeyError:
         start = params['start']
         end = params['end']
-        query = f"select {column} from {table} where {column} between '{start}' and '{end}';"
+        query = f"delete from {table} where {column} between '{start}' and '{end}';"
+    try:
+        res = sql_execute(engine, query)
+    except sql_prog_exc:
+        print(f'Table {table} does not exist and will be created by loader.')
 
-    res = sql_execute(engine, query)
-    print(res)
 
 
 def drop_columns_from_multiple_tables(engine, tables: list, columns: list, cascade=False):
