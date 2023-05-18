@@ -1,7 +1,8 @@
 import os
 import yaml
 
-
+EXTERNAL_MODULES_PATH = os.environ.get('EXTERNAL_MODULES_PATH')
+DEFAULT_CONFIG_PATH = os.path.abspath(f'{EXTERNAL_MODULES_PATH}/config')
 encodings = ('utf-8', 'cp1251', 'cp866', 'cp855', 'koi8_r', 'cyrillic', 'maccyrillic')
 
 
@@ -18,7 +19,7 @@ def read_yaml(filepath):
             continue
 
 
-def read_sql_file(filepath):
+def read_query_file(filepath):
     for encoding in encodings:
         try:
             with open(filepath, 'r', encoding=encoding) as q:
@@ -36,9 +37,11 @@ def get_config(path):
 def get_trf_config_and_sequence(config):
     try:
         trf_config = config['transform']
+        trf_seq = [*trf_config.keys()]
     except KeyError:
-        raise KeyError
-
-    trf_seq = [*trf_config.keys()]
+        print('There is no transform config.')
+        return None, None
+    except AttributeError:
+        print('Transform config is invalid.')
+        return None, None
     return trf_config, trf_seq
-
