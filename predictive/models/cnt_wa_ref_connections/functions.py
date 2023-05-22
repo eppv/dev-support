@@ -43,51 +43,45 @@ def get_forecast_df_range(df, config):
 
 def predict(df, config):
 
-    forecasts_df = pd.DataFrame()
-    forecasts_upper = pd.DataFrame()
-    forecasts_lower = pd.DataFrame()
-
     long = False
-    dfs_for_forecast = get_forecast_df_range(df, config)
+    # dfs_for_forecast = get_forecast_df_range(df, config)
 
+    model_list = config['transform']['predict'].setdefault('model_list', 'default')
 
-    for fdf in dfs_for_forecast:
-        fdf = fdf.set_index('date')
-        print(fdf)
-        fdf.index = fdf.index.astype('datetime64[ns]')
-        print(fdf)
-        model = AutoTS(
-            forecast_length=21,
-            frequency='infer',
-            prediction_interval=0.9,
-            ensemble=None,
-            model_list="default",  # "superfast", "default", "fast_parallel"
-            transformer_list="fast",  # "superfast",
-            drop_most_recent=1,
-            max_generations=4,
-            num_validations=2,
-            validation_method="backwards",
-            min_allowed_train_percent=0.5
-        )
-        model = model.fit(
-            fdf,
-            date_col='datetime' if long else None,
-            value_col='value' if long else None,
-            id_col='series_id' if long else None,
-        )
+    df = df.set_index('date')
+    df.index = df.index.astype('datetime64[ns]')
 
-        prediction = model.predict()
+    model = AutoTS(
+        forecast_length=21,
+        frequency='infer',
+        prediction_interval=0.9,
+        ensemble=None,
+        model_list=model_list,  # "superfast", "default", "fast_parallel"
+        transformer_list="fast",  # "superfast",
+        drop_most_recent=1,
+        max_generations=15,
+        num_validations=2,
+        validation_method="backwards"
+    )
 
-        print(model)
+    model = model.fit(
+        df,
+        date_col='datetime' if long else None,
+        value_col='value' if long else None,
+        id_col='series_id' if long else None,
+    )
 
-        forecasts_df = pd.concat([forecasts_df, prediction.forecast])
-        forecasts_upper = pd.concat([forecasts_upper, prediction.upper_forecast])
-        forecasts_lower = pd.concat([forecasts_lower, prediction.lower_forecast])
+    prediction = model.predict()
+
+    print(model)
+
+    forecasts_df = prediction.forecast
+    forecasts_upper = prediction.upper_forecast
+    forecasts_lower = prediction.lower_forecast
 
     forecasts_df = forecasts_df.reset_index().rename(columns={'index': 'date'})
     forecasts_upper = forecasts_upper.reset_index().rename(columns={'index': 'date'})
     forecasts_lower = forecasts_lower.reset_index().rename(columns={'index': 'date'})
-
 
     # dataframe для заливки в БД с прогнозом
     result = pd.concat([forecasts_df.groupby('date').cnt_quantity.mean().rename('target'),

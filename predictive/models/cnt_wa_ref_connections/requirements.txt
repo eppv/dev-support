@@ -1,5 +1,6 @@
 
 autots~=0.5.6
 pandas~=1.4.3
-witness-etl==0.0.4
+witness-etl==0.0.5
 pendulum~=2.1.0
+tensorflow~=2.12.0
