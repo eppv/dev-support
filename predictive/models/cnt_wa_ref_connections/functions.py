@@ -1,8 +1,15 @@
-
+import datetime
+import json
+import os
+import sys
 import warnings # предупреждения
 import pandas as pd
 import pendulum
 from autots import AutoTS
+from witness import Batch
+from witness.providers.pandas.core import PandasExtractor
+
+from external.utils.var import render_dump_path
 
 warnings.simplefilter("ignore") # убирает предупреждения
 
@@ -44,23 +51,26 @@ def get_forecast_df_range(df, config):
 def predict(df, config):
 
     long = False
-    # dfs_for_forecast = get_forecast_df_range(df, config)
 
-    model_list = config['transform']['predict'].setdefault('model_list', 'default')
+    pred_config = config['transform']['predict']
+    model_list = pred_config.setdefault('model_list', ['DatepartRegression'])
+    forecast_depth = pred_config.setdefault('forecast_depth', 14)
+    num_validations = pred_config.setdefault('num_validations', 1)
+    max_generations = pred_config.setdefault('max_generations', 15)
 
     df = df.set_index('date')
     df.index = df.index.astype('datetime64[ns]')
 
     model = AutoTS(
-        forecast_length=21,
+        forecast_length=forecast_depth,
         frequency='infer',
         prediction_interval=0.9,
         ensemble=None,
         model_list=model_list,  # "superfast", "default", "fast_parallel"
         transformer_list="fast",  # "superfast",
         drop_most_recent=1,
-        max_generations=15,
-        num_validations=2,
+        max_generations=max_generations,
+        num_validations=num_validations,
         validation_method="backwards"
     )
 
@@ -75,20 +85,51 @@ def predict(df, config):
 
     print(model)
 
-    forecasts_df = prediction.forecast
-    forecasts_upper = prediction.upper_forecast
-    forecasts_lower = prediction.lower_forecast
+    combined_forecast = pd.concat([prediction.forecast.rename(columns={'cnt_quantity': 'target'}),
+               prediction.upper_forecast.rename(columns={'cnt_quantity': 'upper'}),
+               prediction.lower_forecast.rename(columns={'cnt_quantity': 'lower'})], axis=1)
 
-    forecasts_df = forecasts_df.reset_index().rename(columns={'index': 'date'})
-    forecasts_upper = forecasts_upper.reset_index().rename(columns={'index': 'date'})
-    forecasts_lower = forecasts_lower.reset_index().rename(columns={'index': 'date'})
-
-    # dataframe для заливки в БД с прогнозом
-    result = pd.concat([forecasts_df.groupby('date').cnt_quantity.mean().rename('target'),
-                        forecasts_upper.groupby('date').cnt_quantity.mean().rename('upper'),
-                        forecasts_lower.groupby('date').cnt_quantity.mean().rename('lower'),
-                        ]
-                       , axis = 1).reset_index()
+    combined_forecast.reset_index(inplace=True)
+    result = combined_forecast.rename(columns={'index': 'date'})
 
     return result
 
+
+class DateTimeEncoder(json.JSONEncoder):
+    def default(self, o):
+        if isinstance(o, datetime.datetime):
+            return o.isoformat()
+        return super().default(o)
+
+
+def run_model(config):
+
+    uri = os.getenv('DUMP_PATH')
+    cwd_content = os.listdir(os.getcwd())
+    print(f'CWD contents: {cwd_content}')
+    print(f'Dump file path: {uri}')
+    big_df = get_data(uri)
+
+    data = predict(df=big_df, config=config)
+    return data
+
+
+def save_result(result, config):
+
+    src_config = config['extract']['src']
+    conn_id = src_config['conn_id']
+    schema = src_config['schema']
+    table = src_config['table']
+
+    extractor = PandasExtractor(uri=f'{conn_id}:{schema}.{table}')
+    extractor.output = result
+    print('Setting extraction timestamp...')
+    extractor._set_extraction_timestamp() # это тут до обновления witness до >=0.0.6
+    batch = Batch()
+    print('Filling batch...')
+    batch.fill(extractor)
+    dump_path = render_dump_path(config, extraction_timestamp=batch.meta['extraction_timestamp'])
+    batch.dump(dump_path)
+
+    meta_json_str = json.dumps(batch.meta.__dict__, cls=DateTimeEncoder)
+    sys.stdout.write(meta_json_str)
