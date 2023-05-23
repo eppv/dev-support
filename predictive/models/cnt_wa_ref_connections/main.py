@@ -9,7 +9,7 @@ from functions import run_model, save_result
 xcom_folder_path = r"D:\data\tmp"
 on_date = '2023-05-22'
 
-on_date_obj = pendulum.parse(on_date)
+on_date_local = pendulum.parse(on_date).in_tz('Asia/Vladivostok')
 
 def extract_and_dump(config):
 
@@ -18,7 +18,7 @@ def extract_and_dump(config):
     schema = src_config['schema']
     table = src_config['table']
     retrospective_data_depth = pred_config['retrospective_data_depth']
-    end = pendulum.today().date()
+    end = on_date_local.date()
     start = (end - pd.DateOffset(retrospective_data_depth)).date()
 
     # Запрос берет количество рефок на каждый день от дня предшествующего сегодняшнему
@@ -45,7 +45,9 @@ def etl_container(dst: str, config: dict):
     print(extracted_meta)
     os.environ['DUMP_PATH'] = extracted_meta['dump_uri']
     result_df = run_model(config=CONFIG)
-    save_result(result=result_df, config=CONFIG)
+    meta = save_result(result=result_df, config=CONFIG)
+    print(meta)
+    meta['data_interval_end'] = on_date_local
     result_df.to_excel(rf'{xcom_folder_path}\{dst}')
 
 
@@ -53,7 +55,7 @@ if __name__ == '__main__':
 
     dag_id = 'stg_isct_pred_ref_cnt_wa_ref_connections'
     CONFIG = get_config('../../../external/config/isct/predictive')[dag_id]
-    dst_file_name = f'model_result_optimized.xlsx'
+    dst_file_name = f'model_result_optimized_{on_date}.xlsx'
 
-    # etl_container(dst=dst_file_name, config=CONFIG)
-    print(on_date_obj)
+    etl_container(dst=dst_file_name, config=CONFIG)
+    print(on_date_local)
