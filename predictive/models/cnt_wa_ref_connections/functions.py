@@ -14,6 +14,13 @@ from external.utils.var import render_dump_path
 warnings.simplefilter("ignore") # убирает предупреждения
 
 
+class DateTimeEncoder(json.JSONEncoder):
+    def default(self, o):
+        if isinstance(o, datetime.datetime):
+            return o.isoformat()
+        return super().default(o)
+
+
 def get_data(uri):
     data = pd.read_pickle(uri)
     df = pd.DataFrame(data)
@@ -95,12 +102,6 @@ def predict(df, config):
 
     return result
 
-
-class DateTimeEncoder(json.JSONEncoder):
-    def default(self, o):
-        if isinstance(o, datetime.datetime):
-            return o.isoformat()
-        return super().default(o)
 
 
 def run_model(config):
