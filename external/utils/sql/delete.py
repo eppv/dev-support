@@ -1,7 +1,7 @@
 from sqlalchemy import text
 from sqlalchemy.orm import sessionmaker
 
-from external.utils.sql.common import ping_table, _throw_warning, execute, sql_prog_exc
+from external.utils.sql.common import ping_table, _throw_warning, execute, prog_exc
 
 def truncate_table(engine, table, **kwargs):
     query = f'truncate table {table}'
@@ -34,7 +34,7 @@ def delete_records_by_period(engine, table, params):
         query = f"delete from {table} where {column} between '{start}' and '{end}';"
     try:
         res = execute(engine, query)
-    except sql_prog_exc:
+    except prog_exc:
         print(f'Table {table} does not exist and will be created by loader.')
 
 
@@ -48,7 +48,7 @@ def drop_columns_from_multiple_tables(engine, tables: list, columns: list, casca
                 query = f"ALTER TABLE {table} DROP COLUMN IF EXISTS {column}{cascade_statement};"
                 session.execute(text(query))
         session.commit()
-    except sql_prog_exc as exc:
+    except prog_exc as exc:
         print(f'Cannot execute query on {engine.engine}. Programming error.')
         raise exc
     print(f'Columns: \n{columns} \ndropped from tables: \n{tables}')

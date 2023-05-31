@@ -1,7 +1,7 @@
 from sqlalchemy import text
 from sqlalchemy.orm import sessionmaker
 
-from external.utils.sql.common import execute, sql_prog_exc
+from external.utils.sql.common import execute, prog_exc
 from external.utils.var import color
 
 
@@ -18,7 +18,7 @@ def add_columns(engine, table, columns: list, dtype='text', default=None):
             query = f"ALTER TABLE {table} ADD COLUMN IF NOT EXISTS {column} {dtype} DEFAULT {default};"
             session.execute(text(query))
         session.commit()
-    except sql_prog_exc as exc:
+    except prog_exc as exc:
         print(f'Cannot execute query on {engine.engine}. Programming error.')
         raise exc
     print(f'Columns {columns} ({dtype}) added to table {table}')
@@ -32,7 +32,7 @@ def add_columns_to_multiple_tables(engine, tables: list, columns: list, dtype='t
                 query = f"ALTER TABLE {table} ADD COLUMN IF NOT EXISTS {column} {dtype} DEFAULT {default};"
                 session.execute(text(query))
         session.commit()
-    except sql_prog_exc as exc:
+    except prog_exc as exc:
         print(f'Cannot execute query on {engine.engine}. Programming error.')
         raise exc
     print(f'Columns: \n{columns} ({dtype}) \nadded to tables: \n{tables}')
@@ -55,7 +55,7 @@ def rename_columns(engine, table, mapping: dict, **kwargs):
                     """
                 session.execute(text(query))
         session.commit()
-    except sql_prog_exc as exc:
+    except prog_exc as exc:
         print(f'Cannot execute query on {engine.engine}. Programming error.')
         raise exc
     print(f'Columns successfully renamed.')

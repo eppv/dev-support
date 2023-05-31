@@ -3,10 +3,6 @@ from external.native.connections import get_engine
 from external.etl.file.excel import extract, is_valid
 from external.etl.sql import load_clean
 from external.utils import sql, fs
-from external.utils.sql.common import dummy_db_action, apply_on_db
-from external.utils.sql.delete import truncate_table
-from external.utils.sql.grant import grant_preset_priveleges
-from external.utils.sql.introspection import check_missing_sources
 from external.utils.var import color
 
 
@@ -80,7 +76,7 @@ def dir_load(meta, config):
     engine = get_engine(conn_id)
 
     db_actions_map = {
-        'incremental': [sql.common.dummy_db_action],
+        'incremental': [sql.dummy_db_action],
         'replace': [sql.delete.truncate_table]
     }
 
@@ -89,11 +85,11 @@ def dir_load(meta, config):
     except KeyError:
         db_on_start = []
         print(f'{color("WARNING:", "red")} Unknown load mode. Operation will be canceled.')
-    db_on_end = [sql.grant.grant_preset_priveleges]
+    db_on_end = [sql.grant.preset_priveleges]
 
     try:
         sql.apply_on_db(engine=engine, table=full_table_name, actions=db_on_start)
-    except sql.common.sql_prog_exc:
+    except sql.prog_exc:
         print(f'Table {color(table), "yellow"} does not exist and will be created by loader.')
 
     for batch_meta in meta:

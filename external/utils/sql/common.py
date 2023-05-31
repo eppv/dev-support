@@ -8,7 +8,7 @@ from time import sleep
 from typing import Optional
 
 
-sql_prog_exc = sqlalchemy.exc.ProgrammingError
+prog_exc = sqlalchemy.exc.ProgrammingError
 
 
 def _throw_warning(table, act: str):
@@ -31,7 +31,7 @@ def execute(engine, query):
         cursor = session.execute(text(query))
         session.commit()
         return cursor
-    except sql_prog_exc as exc:
+    except prog_exc as exc:
         print(f'Cannot execute query on {engine.engine}. Programming error.')
         raise exc
 
@@ -49,7 +49,7 @@ def ping_table(engine, table, **kwargs):
         res = execute(engine, query)
         print(f'Table check on selecting record_source: {res}')
         return True
-    except sql_prog_exc as exc:
+    except prog_exc as exc:
         print(f'Table {table} does not exists')
         raise exc
 
