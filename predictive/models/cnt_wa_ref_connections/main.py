@@ -7,7 +7,7 @@ from external.utils.sql.get import get_by_custom_query
 from functions import run_model, save_result
 
 xcom_folder_path = r"D:\data\tmp"
-on_date = '2023-05-22'
+on_date = '2023-05-24'
 
 on_date_local = pendulum.parse(on_date).in_tz('Asia/Vladivostok')
 

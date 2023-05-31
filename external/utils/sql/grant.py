@@ -1,6 +1,6 @@
 import sqlalchemy.exc
 
-from external.utils.sql.common import sql_execute
+from external.utils.sql.common import execute
 from external.utils.var import color
 
 
@@ -10,7 +10,7 @@ def grant_preset_priveleges(engine, table, **kwargs):
         grant select on table {table} to analyst, power_bi;
     """
     try:
-        sql_execute(engine, query)
+        execute(engine, query)
         print(f'Priveleges granted on table {table}')
     except sqlalchemy.exc.ProgrammingError:
         print(f'Cannot connect to table {color(table, "yellow")}')

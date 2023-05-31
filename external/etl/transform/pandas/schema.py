@@ -35,4 +35,3 @@ def select_columns(df, columns):
     df_selected = df.loc[:, to_select]
     return df_selected
 
-

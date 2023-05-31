@@ -4,6 +4,7 @@ PyYAML~=6.0
 witness-etl~=0.0.5
 pandas~=1.5.0
 openpyxl~=3.0.10
+xlrd
 psycopg2-binary
 pendulum~=2.1.0
 pymssql~=2.2.7

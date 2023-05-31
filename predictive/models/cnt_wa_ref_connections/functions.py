@@ -64,7 +64,7 @@ def predict(df, config):
     forecast_depth = pred_config.setdefault('forecast_depth', 14)
     num_validations = pred_config.setdefault('num_validations', 1)
     max_generations = pred_config.setdefault('max_generations', 15)
-    drop_most_recent = pred_config.set_default('drop_most_recent', 1)
+    drop_most_recent = pred_config.setdefault('drop_most_recent', 1)
 
     df = df.set_index('date')
     df.index = df.index.astype('datetime64[ns]')
@@ -135,3 +135,4 @@ def save_result(result, config):
 
     meta_json_str = json.dumps(batch.meta.__dict__, cls=DateTimeEncoder)
     sys.stdout.write(meta_json_str)
+    return batch.meta
