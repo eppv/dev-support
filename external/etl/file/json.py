@@ -2,7 +2,8 @@ import json
 import os
 from witness.extractors.file import FileExtractor
 from witness import Batch
-from external.utils.var import render_dump_path, color
+from external.utils.var import color
+from external.utils.fs import render_dump_path
 
 
 class JSONFileExtractor(FileExtractor):

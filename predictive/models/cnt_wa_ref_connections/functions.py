@@ -9,7 +9,7 @@ from autots import AutoTS
 from witness import Batch
 from witness.providers.pandas.core import PandasExtractor
 
-from external.utils.var import render_dump_path
+from external.utils.fs import render_dump_path
 
 warnings.simplefilter("ignore") # убирает предупреждения
 

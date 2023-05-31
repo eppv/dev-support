@@ -10,7 +10,7 @@ from external import LOCAL_TZ_NAME
 from external.utils.var import color
 from external.native.connections import get_engine
 from external.utils.sql.get import get_by_period, get_all, get_by_custom_query
-from external.utils.var import render_dump_path
+from external.utils.fs import render_dump_path
 
 FUNC_MAPPING = {
     'get_all': get_all,

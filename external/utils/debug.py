@@ -1,6 +1,7 @@
 import timeit
 from external.utils.var import color
 
+
 def track_exec_time(func):
     def wrapper(*args, **kwargs):
         execution_time = timeit.timeit(lambda: func(*args, **kwargs), number=1)

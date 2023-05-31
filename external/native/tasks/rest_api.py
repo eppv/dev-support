@@ -1,6 +1,6 @@
 
 from external.native.connections import Connection
-from external.utils.var import render_dump_path
+from external.utils.fs import render_dump_path
 
 
 def get_extract(config: dict):
