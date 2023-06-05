@@ -1,4 +1,5 @@
 
+import re
 import pandas as pd
 
 pd.set_option("mode.chained_assignment", None)
@@ -34,4 +35,50 @@ def select_columns(df, columns):
     to_select = [column for column in df.columns if column in columns]
     df_selected = df.loc[:, to_select]
     return df_selected
+
+
+def get_matching_rows_indexes(df, condition, column):
+    indexes = [1 if isinstance(val, str) and re.search(condition, val) else 0 for val in df[column]]
+    return indexes
+
+
+def add_cols_with_group_values(df, group_conditions_in_col):
+    for group in group_conditions_in_col.values():
+        df[group['index_col']] = get_matching_rows_indexes(df, group['condition'], group['src_column'])
+        df[group['group_name']] = df[group['src_column']].where(df[group['index_col']] == 1, None)
+
+    return df
+
+
+def extract_groups(df, params):
+    for group in params:
+        extract_group(df, group)
+    pass
+
+
+def extract_group(df, group_conditions_in_col):
+    df = add_cols_with_group_values(df, group_conditions_in_col)
+
+    for value in group_conditions_in_col.values():
+        df[value['df_group_name']].ffill(inplace=True)
+
+        df = df[df[value['df_index_col']] == 0]
+
+        df.drop(columns=[value['df_index_col']], inplace=True)
+
+    return df
+
+
+def unpivot(df, unpivot_cols, value_cols, ffill_col_name=None):
+    df = pd.melt(df, id_vars=unpivot_cols, value_vars=value_cols)
+
+    if ffill_col_name is not None:
+        df[ffill_col_name].ffill(inplace=True)
+
+    return df
+
+
+def clear_headers(df, substr_to_change):
+    df.columns = df.columns.str.replace(substr_to_change, ' ')
+    return df
 

@@ -4,6 +4,16 @@ import re
 from pathlib import Path
 
 
+def create_dir(path):
+    try:
+        os.makedirs(path)
+        print(f'A directory created by given path: {path}')
+        return path
+    except FileExistsError:
+        print(f'Directory is already exists: {path}')
+        return None
+
+
 def get_filepaths(dirpath):
     dirpath = Path(dirpath)
     if not dirpath.exists():
