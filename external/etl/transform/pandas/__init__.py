@@ -9,5 +9,6 @@ REGISTRY = {
         'define_headers': schema.define_headers,
         'filter_by_conditions': rows.filter_by_conditions,
         'extract_group': schema.extract_group,
-        'table_unpivoting': schema.unpivot
+        'table_unpivoting': schema.unpivot,
+        'clear_headers': schema.clear_headers
 }

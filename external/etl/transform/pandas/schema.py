@@ -60,11 +60,9 @@ def extract_group(df, group_conditions_in_col):
     df = add_cols_with_group_values(df, group_conditions_in_col)
 
     for value in group_conditions_in_col.values():
-        df[value['df_group_name']].ffill(inplace=True)
-
-        df = df[df[value['df_index_col']] == 0]
-
-        df.drop(columns=[value['df_index_col']], inplace=True)
+        df[value['group_name']].ffill(inplace=True)
+        df = df[df[value['index_col']] == 0]
+        df.drop(columns=[value['index_col']], inplace=True)
 
     return df
 
@@ -78,7 +76,7 @@ def unpivot(df, unpivot_cols, value_cols, ffill_col_name=None):
     return df
 
 
-def clear_headers(df, substr_to_change):
-    df.columns = df.columns.str.replace(substr_to_change, ' ')
+def clear_headers(df, substr_to_change: str,  new_substr: str):
+    df.columns = df.columns.str.replace(substr_to_change, new_substr)
     return df
 
