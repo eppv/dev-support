@@ -41,21 +41,34 @@ def get_matching_rows_indexes(df, condition, column):
     indexes = [1 if isinstance(val, str) and re.search(condition, val) else 0 for val in df[column]]
     return indexes
 
+def add_cols_with_group_values(df, group_info):
+    df[group_info['index_col']] = get_matching_rows_indexes(df, group_info['condition'], group_info['src_column'])
+    df[group_info['group_name']] = df[group_info['src_column']].where(df[group_info['index_col']] == 1, None)
+    return df
 
+
+"""  
 def add_cols_with_group_values(df, group_conditions_in_col):
     for group in group_conditions_in_col.values():
         df[group['index_col']] = get_matching_rows_indexes(df, group['condition'], group['src_column'])
         df[group['group_name']] = df[group['src_column']].where(df[group['index_col']] == 1, None)
+    return df
+"""
 
+def extract_groups(df, groups_conditions):
+    for value in groups_conditions.values():
+        df[value['group_name']] = extract_group(df, value)
+        df = df[df[value['index_col']] == 0]
+        df.drop(columns=[value['index_col']], inplace=True)
     return df
 
+def extract_group(df, group_info):
+    df = add_cols_with_group_values(df, group_info)
+    df[group_info['group_name']].ffill(inplace=True)
+    return list(df[group_info['group_name']])
 
-def extract_groups(df, params):
-    for group in params:
-        extract_group(df, group)
-    pass
 
-
+"""
 def extract_group(df, group_conditions_in_col):
     df = add_cols_with_group_values(df, group_conditions_in_col)
 
@@ -65,18 +78,40 @@ def extract_group(df, group_conditions_in_col):
         df.drop(columns=[value['index_col']], inplace=True)
 
     return df
+"""
 
 
-def unpivot(df, unpivot_cols, value_cols, ffill_col_name=None):
+
+def unpivot(df, unpivot_cols, value_cols):
     df = pd.melt(df, id_vars=unpivot_cols, value_vars=value_cols)
-
-    if ffill_col_name is not None:
-        df[ffill_col_name].ffill(inplace=True)
-
     return df
 
+def ffill_cols(df, cols_list):
+    for value in cols_list:
+        df[value].ffill(inplace=True)
+    return df
 
 def clear_headers(df, substr_to_change: str,  new_substr: str):
     df.columns = df.columns.str.replace(substr_to_change, new_substr)
     return df
 
+def change_multi_level_header_row_type(df, row_info):
+    for key, value in row_info.items():
+        df.columns = df.columns.set_levels(df.columns.levels[key].astype(value['type']), level=key)
+    return df
+
+def flatten_cols(df: pd.DataFrame, delim: str = ""):
+    new_cols = [delim.join((col_lev for col_lev in tup if col_lev))
+                for tup in df.columns.values]
+    df.columns = new_cols
+    return df
+
+def drop_columns(df, columns):
+    df.drop(columns=columns, inplace=True)
+    return df
+
+def separate_df_cols_by_delim(df, col_params):
+    for value in col_params.values():
+        df[value['new_col_names']] = df[value['col_name']].str.split(value['delim'], expand=True)
+        df.drop(columns=[value['col_name']], inplace=True)
+    return df
