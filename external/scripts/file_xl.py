@@ -4,15 +4,15 @@ from witness.providers.pandas.loaders import PandasSQLLoader
 from sqlalchemy import create_engine
 
 from external.etl.common import extract, create_backup, load
-from external.utils.configparse import get_etl_config
-from external.utils.sql.db import apply_on_db, \
+from external.utils.configparse import get_config
+from external.utils.sql.common import apply_on_db, \
     dummy_db_action
 from external.utils.var import show_exec_time
 from external.native.connections import Connection
 
 
 script_id = 'example'
-CONFIG = get_etl_config('../config/example')[script_id]
+CONFIG = get_config('../config/example')[script_id]
 
 
 @show_exec_time

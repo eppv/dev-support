@@ -1,10 +1,12 @@
+import os
 from dataclasses import dataclass
 from typing import Optional
-from os.path import abspath
 from sqlalchemy import create_engine
 from external.utils.configparse import read_yaml
 
-config_path = abspath('../config/connections.yml')
+
+EXTERNAL_MODULES_PATH = os.environ.get('EXTERNAL_MODULES_PATH')
+default_config_path = os.path.abspath(f'{EXTERNAL_MODULES_PATH}/config/connections.yml')
 
 
 @dataclass
@@ -21,7 +23,7 @@ class Connection:
     password: [str]
 
     @classmethod
-    def from_config(cls, conn_id):
+    def from_config(cls, conn_id, config_path=default_config_path):
         connection_configs = read_yaml(config_path)
         for config_id, config in connection_configs.items():
             if config_id == conn_id:
