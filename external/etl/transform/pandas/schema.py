@@ -46,15 +46,6 @@ def add_cols_with_group_values(df, group_info):
     df[group_info['group_name']] = df[group_info['src_column']].where(df[group_info['index_col']] == 1, None)
     return df
 
-
-"""  
-def add_cols_with_group_values(df, group_conditions_in_col):
-    for group in group_conditions_in_col.values():
-        df[group['index_col']] = get_matching_rows_indexes(df, group['condition'], group['src_column'])
-        df[group['group_name']] = df[group['src_column']].where(df[group['index_col']] == 1, None)
-    return df
-"""
-
 def extract_groups(df, groups_conditions):
     for value in groups_conditions.values():
         df[value['group_name']] = extract_group(df, value)
@@ -66,20 +57,6 @@ def extract_group(df, group_info):
     df = add_cols_with_group_values(df, group_info)
     df[group_info['group_name']].ffill(inplace=True)
     return list(df[group_info['group_name']])
-
-
-"""
-def extract_group(df, group_conditions_in_col):
-    df = add_cols_with_group_values(df, group_conditions_in_col)
-
-    for value in group_conditions_in_col.values():
-        df[value['group_name']].ffill(inplace=True)
-        df = df[df[value['index_col']] == 0]
-        df.drop(columns=[value['index_col']], inplace=True)
-
-    return df
-"""
-
 
 
 def unpivot(df, unpivot_cols, value_cols):
