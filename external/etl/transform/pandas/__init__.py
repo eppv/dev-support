@@ -1,4 +1,3 @@
-
 from external.etl.transform.pandas import schema, rows
 
 REGISTRY = {
@@ -15,5 +14,6 @@ REGISTRY = {
         'separate_df_cols_by_delim': schema.separate_df_cols_by_delim,
         'drop_columns': schema.drop_columns,
         'flatten_cols': schema.flatten_cols,
-        'change_multi_level_header_row_type': schema.change_multi_level_header_row_type
+        'change_multi_level_header_row_type': schema.change_multi_level_header_row_type,
+        'drop_cols_by_regex': schema.drop_cols_by_regex
 }

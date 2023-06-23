@@ -60,7 +60,7 @@ def extract_group(df, group_info):
 
 
 def unpivot(df, unpivot_cols, value_cols):
-    df = pd.melt(df, id_vars=unpivot_cols, value_vars=value_cols)
+    df = pd.melt(df, id_vars=unpivot_cols, value_vars=list(df.loc[:,df.columns.str.contains(value_cols, case=False)].columns))
     return df
 
 def ffill_cols(df, cols_list):
@@ -87,8 +87,14 @@ def drop_columns(df, columns):
     df.drop(columns=columns, inplace=True)
     return df
 
+def drop_cols_by_regex(df, condition):
+    df = df.loc[:,~df.columns.str.contains(condition, case=False)]
+    return df
+
+
 def separate_df_cols_by_delim(df, col_params):
     for value in col_params.values():
         df[value['new_col_names']] = df[value['col_name']].str.split(value['delim'], expand=True)
         df.drop(columns=[value['col_name']], inplace=True)
     return df
+

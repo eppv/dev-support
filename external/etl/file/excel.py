@@ -13,10 +13,12 @@ def _transform(df, config):
         trf_config, trf_seq = get_trf_config_and_sequence(config)
         scenario = Scenario(sequence=trf_seq, config=trf_config)
         transformed_df = scenario.apply(df)
+
         return transformed_df
     except KeyError:
         print('No transform function found.')
         return df
+
 
 
 def _handle_multi_sheet(output, config):
@@ -45,6 +47,8 @@ def extract_and_normalize(extractor, config):
 
     united_df = concat(dfs)
     setattr(extractor, 'output', united_df)
+
+    print(extractor.output)
 
     extractor.unify()
 
@@ -80,7 +84,7 @@ def is_excel_format(filepath):
     excel_extensions = ['.xlsx', '.xls', '.xlsm', '.xlsb']
     head, tail = os.path.split(filepath)
     name, ext = os.path.splitext(tail)
-    if ext in excel_extensions:
+    if str.lower(ext) in excel_extensions:
         return True
     print(f'{filepath} is not excel format. Passing...')
     return False

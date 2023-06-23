@@ -62,6 +62,7 @@ def dir_extract(config):
     src = config['extract']['src']
     sink = config['load']['sink']
     dir_uri = src['uri']
+    filter_condition = config['extract']['filter']
 
     conn_id = config['load']['sink']['conn_id']
     full_table_name = f"{sink['schema']}.{sink['table']}"
@@ -69,6 +70,14 @@ def dir_extract(config):
 
     filepaths = fs.get_filepaths(dir_uri)
     sources = [f'{filepath}' for filepath in filepaths if is_valid(f'{filepath}')]
+
+    if 'filter' in config['extract']:
+        sources = [str(file) for file in sources]
+        sources = [Path(file) for file in sources if re.search(filter_condition, file)]
+    else:
+        pass
+
+    print(sources)
 
     if mode == 'incremental':
         files_to_extract = sql.introspection.check_missing_sources(sources, conn_id, full_table_name)
@@ -85,7 +94,7 @@ def dir_extract(config):
         file_config['extract']['src']['uri'] = uri
         meta = extract(config=config)
         extracted.append(meta)
-
+    print(extracted)
     return extracted
 
 
