@@ -48,7 +48,7 @@ def extract_and_normalize(extractor, config):
     united_df = concat(dfs)
     setattr(extractor, 'output', united_df)
 
-    print(extractor.output)
+    print(extractor.output.to_string())
 
     extractor.unify()
 

@@ -59,8 +59,13 @@ def extract_group(df, group_info):
     return list(df[group_info['group_name']])
 
 
-def unpivot(df, unpivot_cols, value_cols_regex):
-    df = pd.melt(df, id_vars=unpivot_cols, value_vars=list(df.loc[:,df.columns.str.contains(value_cols_regex, case=False)].columns))
+def unpivot_by_regex_args(df, unpivot_cols_regex, value_cols_regex):
+    df = pd.melt(df, id_vars=list(df.loc[:,df.columns.str.contains(unpivot_cols_regex, case=False)].columns), \
+                     value_vars=list(df.loc[:,df.columns.str.contains(value_cols_regex, case=False)].columns))
+    return df
+
+def unpivot(df, unpivot_cols, value_cols):
+    df = pd.melt(df, id_vars=unpivot_cols, value_vars=value_cols)
     return df
 
 def ffill_cols(df, cols_list):

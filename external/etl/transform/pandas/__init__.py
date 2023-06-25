@@ -9,6 +9,7 @@ REGISTRY = {
         'filter_by_conditions': rows.filter_by_conditions,
         'extract_groups': schema.extract_groups,
         'unpivot': schema.unpivot,
+        'unpivot_by_regex_args': schema.unpivot_by_regex_args,
         'clear_headers': schema.clear_headers,
         'ffill_cols': schema.ffill_cols,
         'separate_df_cols_by_delim': schema.separate_df_cols_by_delim,
