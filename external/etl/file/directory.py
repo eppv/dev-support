@@ -8,14 +8,13 @@ from external.utils import sql, fs
 from external.utils.sql.introspection import get_loaded_src_ids
 from external.utils.var import color
 
-def get_filepaths(dirpath, condition):
+def get_filepaths(dirpath):
     dirpath = Path(dirpath)
     if not dirpath.exists():
         print(f"The provided path: {dirpath} does not exist.")
         return None
     all_files_roots = [str(file) for file in dirpath.rglob('*')]
-    filtered_files_roots = [Path(file) for file in all_files_roots if re.search(condition, file)]
-    return filtered_files_roots
+    return all_files_roots
 
 
 def print_etl_debug_msg(config):
@@ -62,7 +61,6 @@ def dir_extract(config):
     src = config['extract']['src']
     sink = config['load']['sink']
     dir_uri = src['uri']
-    filter_condition = config['extract']['filter']
 
     conn_id = config['load']['sink']['conn_id']
     full_table_name = f"{sink['schema']}.{sink['table']}"
@@ -72,12 +70,12 @@ def dir_extract(config):
     sources = [f'{filepath}' for filepath in filepaths if is_valid(f'{filepath}')]
 
     if 'filter' in config['extract']:
+        filter_condition = config['extract']['filter']
         sources = [str(file) for file in sources]
         sources = [Path(file) for file in sources if re.search(filter_condition, file)]
     else:
         pass
 
-    print(sources)
 
     if mode == 'incremental':
         files_to_extract = sql.introspection.check_missing_sources(sources, conn_id, full_table_name)
@@ -94,7 +92,7 @@ def dir_extract(config):
         file_config['extract']['src']['uri'] = uri
         meta = extract(config=config)
         extracted.append(meta)
-    print(extracted)
+
     return extracted
 
 
