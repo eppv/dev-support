@@ -1,9 +1,20 @@
 import os
+import re
+from pathlib import Path
 from external.native.connections import get_engine
 from external.etl.file.excel import extract, is_valid
 from external.etl.sql import load_clean
 from external.utils import sql, fs
+from external.utils.sql.introspection import get_loaded_src_ids
 from external.utils.var import color
+
+def get_filepaths(dirpath):
+    dirpath = Path(dirpath)
+    if not dirpath.exists():
+        print(f"The provided path: {dirpath} does not exist.")
+        return None
+    all_files_roots = [str(file) for file in dirpath.rglob('*')]
+    return all_files_roots
 
 
 def print_etl_debug_msg(config):
@@ -31,6 +42,19 @@ def print_etl_debug_msg(config):
 
     print(debug_msg)
 
+def check_missing_sources(sources, conn_id, table):
+    engine = get_engine(conn_id)
+    loaded = get_loaded_src_ids(engine, table)
+    missing = [path for path in sources if path not in loaded]
+
+    return missing
+
+def filename_contains(filename:str, substrings:list):
+    for substring in substrings:
+        if substring in filename:
+            print(f"The file: {filename} contains inappropriate substring. Passing...")
+            return True
+    return False
 
 def dir_extract(config):
 
@@ -44,6 +68,14 @@ def dir_extract(config):
 
     filepaths = fs.get_filepaths(dir_uri)
     sources = [f'{filepath}' for filepath in filepaths if is_valid(f'{filepath}')]
+
+    if 'filter' in config['extract']:
+        filter_condition = config['extract']['filter']
+        sources = [str(file) for file in sources]
+        sources = [Path(file) for file in sources if re.search(filter_condition, file)]
+    else:
+        pass
+
 
     if mode == 'incremental':
         files_to_extract = sql.introspection.check_missing_sources(sources, conn_id, full_table_name)
