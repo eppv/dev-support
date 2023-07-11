@@ -1,8 +1,7 @@
-import sqlalchemy.exc
 
-from external.native.connections import get_engine
-from external.utils.sql.common import execute
+from external.utils.sql.common import sql_execute, prog_exc
 from external.utils.var import color
+from external.native.connections import get_engine
 
 
 def get_columns(engine, schema, table, **kwargs):
@@ -12,7 +11,7 @@ def get_columns(engine, schema, table, **kwargs):
     where TABLE_SCHEMA = \'{schema}\' 
       and TABLE_NAME = \'{table}\';
     """
-    result = execute(engine, query=query)
+    result = sql_execute(engine, query=query)
     return result
 
 
@@ -20,17 +19,39 @@ def get_loaded_src_ids(engine, table, **kwargs):
     query = f'select distinct record_source from {table};'
 
     try:
-        src_list = execute(engine, query)
+        src_list = sql_execute(engine, query)
         names = [name for name, in src_list]
         return names
-    except sqlalchemy.exc.ProgrammingError:
+    except prog_exc as exc:
         print(f'Table "{color(table, "yellow")}" does not exist! Filenames list is empty!')
-        return []
+        raise exc
 
 
-def check_missing_sources(sources, conn_id, table):
+def select_missing_sources(sources: list, conn_id: str, table: str) -> list:
+
     engine = get_engine(conn_id)
-    loaded = get_loaded_src_ids(engine, table)
+    try:
+        loaded = get_loaded_src_ids(engine, table)
+    except prog_exc:
+        print('There are no loaded sources to check because of the sink table doesnt exist.')
+        loaded = []
     missing = [path for path in sources if path not in loaded]
 
     return missing
+
+
+def filter_loaded_sources(uris: list, config: dict) -> list:
+    sink = config['load']['sink']
+    conn_id = sink['conn_id']
+    full_table_name = f"{sink['schema']}.{sink['table']}"
+    mode = config['load']['mode']
+
+    if mode == 'incremental':
+        sources = select_missing_sources(uris, conn_id, full_table_name)
+    elif mode == 'replace':
+        sources = uris
+    else:
+        sources = []
+        print(f'{color("WARNING:", "red")} Unknown load mode. Operation will be canceled.')
+
+    return sources

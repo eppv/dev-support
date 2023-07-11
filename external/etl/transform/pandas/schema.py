@@ -1,6 +1,5 @@
-
-import re
 import pandas as pd
+import re
 
 pd.set_option("mode.chained_assignment", None)
 
@@ -36,7 +35,6 @@ def select_columns(df, columns):
     df_selected = df.loc[:, to_select]
     return df_selected
 
-
 def get_matching_rows_indexes(df, condition, column):
     indexes = [1 if isinstance(val, str) and re.search(condition, val) else 0 for val in df[column]]
     return indexes
@@ -44,7 +42,7 @@ def get_matching_rows_indexes(df, condition, column):
 
 def add_cols_with_group_values(df, group_info):
     df[group_info['index_col']] = get_matching_rows_indexes(df, group_info['condition'], group_info['src_column'])
-    df[group_info['group_name']] = df[group_info['src_column']].where(df[group_info['index_col']] == 1, None)
+    df[group_info['group_name']] = df[group_info['src_column']].where(df[group_info['index_col']] == 1, pd.NA)
     return df
 
 
@@ -112,5 +110,6 @@ def separate_df_cols_by_delim(df, col_params):
         df[value['new_col_names']] = df[value['col_name']].str.split(value['delim'], expand=True)
         df.drop(columns=[value['col_name']], inplace=True)
     return df
+
 
 

@@ -1,13 +1,13 @@
 from sqlalchemy import text
 from sqlalchemy.orm import sessionmaker
 
-from external.utils.sql.common import execute, prog_exc
+from external.utils.sql.common import sql_execute, prog_exc
 from external.utils.var import color
 
 
 def add_column(engine, table, column: str, dtype='text', default=None):
     query = f"ALTER TABLE {table} ADD COLUMN IF NOT EXISTS {column} {dtype} DEFAULT {default};"
-    execute(engine, query=query)
+    sql_execute(engine, query=query)
     print(f'Column {column} ({dtype}) added to table {table}')
 
 
@@ -40,7 +40,7 @@ def add_columns_to_multiple_tables(engine, tables: list, columns: list, dtype='t
 
 def add_load_timestamp(engine, table, **kwargs):
     query = f"ALTER TABLE {table} ADD COLUMN IF NOT EXISTS load_timestamp timestamp DEFAULT now();"
-    execute(engine, query=query)
+    sql_execute(engine, query=query)
     print(f'Column {color("load_timestamp", "yellow")} added to table {table} '
           f'and set default for now()')
 

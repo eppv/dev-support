@@ -1,14 +1,15 @@
 from sqlalchemy import text
 from sqlalchemy.orm import sessionmaker
 
-from external.utils.sql.common import ping_table, _throw_warning, execute, prog_exc
+from external.utils.sql.common import ping_table, _throw_warning, sql_execute, prog_exc
+
 
 def truncate_table(engine, table, **kwargs):
     query = f'truncate table {table}'
     act = 'truncated'
     if ping_table(engine, table, **kwargs):
         _throw_warning(table, act=act)
-        execute(engine, query)
+        sql_execute(engine, query)
         print(f'Table {table} {act}.')
 
 
@@ -19,7 +20,7 @@ def drop_table_if_exists(engine, table, cascade=False, **kwargs):
         query = f'drop table if exists {table}'
     act = 'dropped'
     _throw_warning(table, act=act)
-    execute(engine, query)
+    sql_execute(engine, query)
     print(f'Table {table} {act}.')
 
 
@@ -33,10 +34,9 @@ def delete_records_by_period(engine, table, params):
         end = params['end']
         query = f"delete from {table} where {column} between '{start}' and '{end}';"
     try:
-        res = execute(engine, query)
+        sql_execute(engine, query)
     except prog_exc:
         print(f'Table {table} does not exist and will be created by loader.')
-
 
 
 def drop_columns_from_multiple_tables(engine, tables: list, columns: list, cascade=False):

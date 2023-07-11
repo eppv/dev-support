@@ -1,4 +1,6 @@
-from external.etl.transform.pandas import schema, rows
+
+from external.etl.transform.pandas import schema
+from external.etl.transform.pandas import rows
 
 REGISTRY = {
         'rename_columns': schema.rename_columns,

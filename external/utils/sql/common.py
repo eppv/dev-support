@@ -20,7 +20,7 @@ def _throw_warning(table, act: str):
     print('Running...')
 
 
-def execute(engine, query):
+def sql_execute(engine, query):
     session = sessionmaker(engine)()
     try:
         cursor = session.execute(text(query))
@@ -46,7 +46,7 @@ def apply_on_db(engine, table, actions: Optional[list] = None, **kwargs):
 def ping_table(engine, table, **kwargs):
     query = f"select record_source from {table} limit 1;"
     try:
-        res = execute(engine, query)
+        res = sql_execute(engine, query)
         print(f'Table check on selecting record_source: {res}')
         return True
     except prog_exc as exc:

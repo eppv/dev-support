@@ -13,12 +13,10 @@ def _transform(df, config):
         trf_config, trf_seq = get_trf_config_and_sequence(config)
         scenario = Scenario(sequence=trf_seq, config=trf_config)
         transformed_df = scenario.apply(df)
-
         return transformed_df
     except KeyError:
         print('No transform function found.')
         return df
-
 
 
 def _handle_multi_sheet(output, config):
@@ -88,7 +86,7 @@ def is_excel_format(filepath):
     return False
 
 
-def is_valid(filepath):
+def is_valid(filepath: str):
     tempfile_substrings = ['.tmp', '~$']
     if os.path.isfile(filepath):
         if any(substring in filepath for substring in tempfile_substrings):
